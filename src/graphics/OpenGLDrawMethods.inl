@@ -1,5 +1,6 @@
 #include "../data/font.h"
 #include <cmath>
+#include "FontReader.h"
 
 int PIXELMETHODS_CLASS::drawtext_outline(int x, int y, String s, int r, int g, int b, int a)
 {
@@ -131,8 +132,9 @@ int PIXELMETHODS_CLASS::drawtext(int x, int y, String str, int r, int g, int b, 
 
 int PIXELMETHODS_CLASS::drawchar(int x, int y, String::value_type c, int r, int g, int b, int a)
 {
-	const unsigned char *rp = font_data + font_ptrs[c];
-	int w = *(rp++);
+	FontReader reader(c);
+	int w = reader.GetWidth();
+
 	VideoBuffer texture(w, 12);
 	texture.SetCharacter(0, 0, c, r, g, b, a);
 
@@ -160,8 +162,9 @@ int PIXELMETHODS_CLASS::drawchar(int x, int y, String::value_type c, int r, int 
 
 int PIXELMETHODS_CLASS::addchar(int x, int y, String::value_type c, int r, int g, int b, int a)
 {
-	const unsigned char *rp = font_data + font_ptrs[c];
-	int w = *(rp++);
+	FontReader reader(c);
+	int w = reader.GetWidth();
+
 	VideoBuffer texture(w, 12);
 	texture.AddCharacter(0, 0, c, r, g, b, a);
 
