@@ -119,9 +119,9 @@ void CalculateMousePosition(int *x, int *y)
 }
 
 #ifdef OGLI
-void blit()
+void blit(SDL_Window * window)
 {
-	SDL_GL_SwapBuffers();
+	SDL_GL_SwapWindow(window);
 }
 #else
 void blit(pixel * vid)
@@ -148,8 +148,16 @@ int SDLOpen()
 		flags = altFullscreen ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_FULLSCREEN_DESKTOP;
 	if (resizable)
 		flags |= SDL_WINDOW_RESIZABLE;
+#ifdef OGLI
+	flags |= SDL_WINDOW_OPENGL;
+#endif
 	sdl_window = SDL_CreateWindow("The Powder Toy", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOWW * scale, WINDOWH * scale,
 	                              flags);
+#ifdef OGLI
+	SDL_GLContext glcontext = SDL_GL_CreateContext(sdl_window);
+	if(glcontext == NULL)
+		fprintf(stderr, SDL_GetError());
+#endif
 	sdl_renderer = SDL_CreateRenderer(sdl_window, -1, 0);
 	SDL_RenderSetLogicalSize(sdl_renderer, WINDOWW, WINDOWH);
 	//Uncomment this to force fullscreen to an integer resolution
@@ -450,7 +458,7 @@ void EngineProcess()
 		}
 
 #ifdef OGLI
-		blit();
+		blit(sdl_window);
 #else
 		blit(engine->g->vid);
 #endif
@@ -521,7 +529,7 @@ void BlueScreen(String detailMessage)
 			if(event.type == SDL_QUIT)
 				exit(-1);
 #ifdef OGLI
-		blit();
+		blit(sdl_window);
 #else
 		blit(engine->g->vid);
 #endif
@@ -708,7 +716,7 @@ int main(int argc, char * argv[])
 			engine->g->drawtext((engine->GetWidth()/2)-(Graphics::textwidth("Loading save...")/2), (engine->GetHeight()/2)-5, "Loading save...", style::Colour::InformationTitle.Red, style::Colour::InformationTitle.Green, style::Colour::InformationTitle.Blue, 255);
 
 #ifdef OGLI
-			blit();
+			blit(sdl_window);
 #else
 			blit(engine->g->vid);
 #endif

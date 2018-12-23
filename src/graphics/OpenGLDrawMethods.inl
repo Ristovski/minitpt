@@ -14,12 +14,14 @@ int PIXELMETHODS_CLASS::drawtext_outline(int x, int y, String s, int r, int g, i
 
 int PIXELMETHODS_CLASS::drawtext(int x, int y, String str, int r, int g, int b, int a)
 {
+	return 0;
+	/*
 	bool invert = false;
-	if(!strlen(s))
+	if(!str.length())
 		return 0;
 	int oR = r, oG = g, oB = b;
 	int width, height;
-	Graphics::textsize(s, width, height);
+	Graphics::textsize(str, width, height);
 	VideoBuffer texture(width, height);
 	int characterX = 0, characterY = 0;
 	int startX = characterX;
@@ -127,10 +129,13 @@ int PIXELMETHODS_CLASS::drawtext(int x, int y, String str, int r, int g, int b, 
 	glDisable(GL_TEXTURE_2D);
 
 	return x;
+	*/
 }
 
 int PIXELMETHODS_CLASS::drawchar(int x, int y, String::value_type c, int r, int g, int b, int a)
 {
+	return 0;
+	/*
 	unsigned char *rp = font_data + font_ptrs[c];
 	int w = *(rp++);
 	VideoBuffer texture(w, 12);
@@ -156,10 +161,13 @@ int PIXELMETHODS_CLASS::drawchar(int x, int y, String::value_type c, int r, int 
 	glDisable(GL_TEXTURE_2D);
 
 	return x + w;
+	*/
 }
 
 int PIXELMETHODS_CLASS::addchar(int x, int y, String::value_type c, int r, int g, int b, int a)
 {
+	return 0;
+	/*
 	unsigned char *rp = font_data + font_ptrs[c];
 	int w = *(rp++);
 	VideoBuffer texture(w, 12);
@@ -187,6 +195,7 @@ int PIXELMETHODS_CLASS::addchar(int x, int y, String::value_type c, int r, int g
 	glDisable(GL_TEXTURE_2D);
 
 	return x + w;
+	*/
 }
 
 TPT_INLINE void PIXELMETHODS_CLASS::xor_pixel(int x, int y)
