@@ -14,8 +14,6 @@ int PIXELMETHODS_CLASS::drawtext_outline(int x, int y, String s, int r, int g, i
 
 int PIXELMETHODS_CLASS::drawtext(int x, int y, String str, int r, int g, int b, int a)
 {
-	return 0;
-	/*
 	bool invert = false;
 	if(!str.length())
 		return 0;
@@ -25,7 +23,7 @@ int PIXELMETHODS_CLASS::drawtext(int x, int y, String str, int r, int g, int b, 
 	VideoBuffer texture(width, height);
 	int characterX = 0, characterY = 0;
 	int startX = characterX;
-	String::value_type *s = str.c_str();
+	const String::value_type *s = str.c_str();
 	for (; *s; s++)
 	{
 		if (*s == '\n')
@@ -129,14 +127,11 @@ int PIXELMETHODS_CLASS::drawtext(int x, int y, String str, int r, int g, int b, 
 	glDisable(GL_TEXTURE_2D);
 
 	return x;
-	*/
 }
 
 int PIXELMETHODS_CLASS::drawchar(int x, int y, String::value_type c, int r, int g, int b, int a)
 {
-	return 0;
-	/*
-	unsigned char *rp = font_data + font_ptrs[c];
+	const unsigned char *rp = font_data + font_ptrs[c];
 	int w = *(rp++);
 	VideoBuffer texture(w, 12);
 	texture.SetCharacter(0, 0, c, r, g, b, a);
@@ -144,31 +139,28 @@ int PIXELMETHODS_CLASS::drawchar(int x, int y, String::value_type c, int r, int 
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, textTexture);
 
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.Width, texture.Height, 0, GL_BGRA, GL_UNSIGNED_BYTE, texture.Buffer);
 	glBegin(GL_QUADS);
-    glTexCoord2d(0, 0);
-    glVertex2f(x, y);
-    glTexCoord2d(1, 0);
-    glVertex2f(x+texture.Width, y);
-    glTexCoord2d(1, 1);
-    glVertex2f(x+texture.Width, y+texture.Height);
-    glTexCoord2d(0, 1);
-    glVertex2f(x, y+texture.Height);
-    glEnd();
+	glTexCoord2d(0, 0);
+	glVertex2f(x, y);
+	glTexCoord2d(1, 0);
+	glVertex2f(x+texture.Width, y);
+	glTexCoord2d(1, 1);
+	glVertex2f(x+texture.Width, y+texture.Height);
+	glTexCoord2d(0, 1);
+	glVertex2f(x, y+texture.Height);
+	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE_2D);
 
 	return x + w;
-	*/
 }
 
 int PIXELMETHODS_CLASS::addchar(int x, int y, String::value_type c, int r, int g, int b, int a)
 {
-	return 0;
-	/*
-	unsigned char *rp = font_data + font_ptrs[c];
+	const unsigned char *rp = font_data + font_ptrs[c];
 	int w = *(rp++);
 	VideoBuffer texture(w, 12);
 	texture.AddCharacter(0, 0, c, r, g, b, a);
@@ -177,25 +169,24 @@ int PIXELMETHODS_CLASS::addchar(int x, int y, String::value_type c, int r, int g
 	glBindTexture(GL_TEXTURE_2D, textTexture);
 	glBlendFunc(GL_ONE, GL_ONE);
 
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.Width, texture.Height, 0, GL_BGRA, GL_UNSIGNED_BYTE, texture.Buffer);
 	glBegin(GL_QUADS);
-    glTexCoord2d(0, 0);
-    glVertex2f(x, y);
-    glTexCoord2d(1, 0);
-    glVertex2f(x+texture.Width, y);
-    glTexCoord2d(1, 1);
-    glVertex2f(x+texture.Width, y+texture.Height);
-    glTexCoord2d(0, 1);
-    glVertex2f(x, y+texture.Height);
-    glEnd();
+	glTexCoord2d(0, 0);
+	glVertex2f(x, y);
+	glTexCoord2d(1, 0);
+	glVertex2f(x+texture.Width, y);
+	glTexCoord2d(1, 1);
+	glVertex2f(x+texture.Width, y+texture.Height);
+	glTexCoord2d(0, 1);
+	glVertex2f(x, y+texture.Height);
+	glEnd();
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE_2D);
 
 	return x + w;
-	*/
 }
 
 TPT_INLINE void PIXELMETHODS_CLASS::xor_pixel(int x, int y)
