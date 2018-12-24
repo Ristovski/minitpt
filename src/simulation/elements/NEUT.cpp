@@ -91,7 +91,7 @@ int Element_NEUT::update(UPDATE_FUNC_ARGS)
 				case PT_DEUT:
 					if (RNG::Ref().chance(pressureFactor + 1 + (parts[ID(r)].life/100), 1000))
 					{
-						DeutExplosion(sim, parts[ID(r)].life, x+rx, y+ry, restrict_flt(parts[ID(r)].temp + parts[ID(r)].life*500.0f, MIN_TEMP, MAX_TEMP), PT_NEUT);
+						DeutExplosion(sim, parts[ID(r)].life, x+rx, y+ry, restrict_flt(parts[ID(r)].temp + (UFixed)(parts[ID(r)].life*500.0f), (UFixed)MIN_TEMP, (UFixed)MAX_TEMP), PT_NEUT);
 						sim->kill_part(ID(r));
 					}
 					break;
@@ -103,7 +103,7 @@ int Element_NEUT::update(UPDATE_FUNC_ARGS)
 						parts[ID(r)].vx = 0.25f*parts[ID(r)].vx + parts[i].vx;
 						parts[ID(r)].vy = 0.25f*parts[ID(r)].vy + parts[i].vy;
 						parts[ID(r)].life --;
-						parts[ID(r)].temp = restrict_flt(parts[ID(r)].temp + parts[ID(r)].life*17.0f, MIN_TEMP, MAX_TEMP);
+						parts[ID(r)].temp = restrict_flt(parts[ID(r)].temp + (UFixed)(parts[ID(r)].life*17.0f), (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 						pv[y/CELL][x/CELL] += 6.0f * CFDS;
 
 					}
@@ -113,13 +113,6 @@ int Element_NEUT::update(UPDATE_FUNC_ARGS)
 					if (RNG::Ref().chance(3, 200))
 						sim->part_change_type(ID(r),x+rx,y+ry,PT_DUST);
 					break;
-				case PT_DYST:
-					if (RNG::Ref().chance(3, 200))
-						sim->part_change_type(ID(r),x+rx,y+ry,PT_YEST);
-					break;
-				case PT_YEST:
-					sim->part_change_type(ID(r),x+rx,y+ry,PT_DYST);
-					break;
 				case PT_PLEX:
 					if (RNG::Ref().chance(3, 200))
 						sim->part_change_type(ID(r),x+rx,y+ry,PT_GOO);
@@ -127,10 +120,6 @@ int Element_NEUT::update(UPDATE_FUNC_ARGS)
 				case PT_NITR:
 					if (RNG::Ref().chance(3, 200))
 						sim->part_change_type(ID(r),x+rx,y+ry,PT_DESL);
-					break;
-				case PT_PLNT:
-					if (RNG::Ref().chance(1, 20))
-						sim->create_part(ID(r), x+rx, y+ry, PT_WOOD);
 					break;
 				case PT_DESL:
 				case PT_OIL:

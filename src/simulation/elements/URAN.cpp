@@ -50,13 +50,13 @@ int Element_URAN::update(UPDATE_FUNC_ARGS)
 {
 	if (!sim->legacy_enable && sim->pv[y/CELL][x/CELL]>0.0f)
 	{
-		if (parts[i].temp == MIN_TEMP)
+		if (parts[i].temp == (UFixed)MIN_TEMP)
 		{
-			parts[i].temp += .01f;
+			parts[i].temp += (UFixed)0.01f;
 		}
 		else
 		{
-			parts[i].temp = restrict_flt((parts[i].temp*(1 + (sim->pv[y / CELL][x / CELL] / 2000))) + MIN_TEMP, MIN_TEMP, MAX_TEMP);
+			parts[i].temp = restrict_flt((UFixed)(parts[i].temp*(1 + (sim->pv[y / CELL][x / CELL] / 2000))) + (UFixed)MIN_TEMP, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 		}
 	}
 	return 0;

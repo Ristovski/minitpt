@@ -50,7 +50,7 @@ int Element_BANG::update(UPDATE_FUNC_ARGS)
 	int r, rx, ry;
 	if(parts[i].tmp==0)
 	{
-		if(parts[i].temp>=673.0f)
+		if(parts[i].temp >= (UFixed)673)
 			parts[i].tmp = 1;
 		else
 			for (rx=-1; rx<2; rx++)
@@ -83,7 +83,7 @@ int Element_BANG::update(UPDATE_FUNC_ARGS)
 	}
 	else
 	{
-		float otemp = parts[i].temp-273.15f;
+		UFixed otemp = parts[i].temp - (UFixed)273.15f;
 		//Explode!!
 		sim->pv[y/CELL][x/CELL] += 0.5f;
 		parts[i].tmp = 0;
@@ -98,7 +98,7 @@ int Element_BANG::update(UPDATE_FUNC_ARGS)
 				sim->create_part(i, x, y, PT_SMKE);
 				parts[i].life = RNG::Ref().between(500, 549);
 			}
-			parts[i].temp = restrict_flt((MAX_TEMP/4)+otemp, MIN_TEMP, MAX_TEMP);
+			parts[i].temp = restrict_flt((UFixed)(MAX_TEMP/4)+otemp, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 		}
 		else
 		{
@@ -107,7 +107,7 @@ int Element_BANG::update(UPDATE_FUNC_ARGS)
 				sim->create_part(i, x, y, PT_EMBR);
 				parts[i].tmp = 0;
 				parts[i].life = 50;
-				parts[i].temp = restrict_flt((MAX_TEMP/3)+otemp, MIN_TEMP, MAX_TEMP);
+				parts[i].temp = restrict_flt((UFixed)(MAX_TEMP/3)+otemp, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 				parts[i].vx = RNG::Ref().between(-10, 10);
 				parts[i].vy = RNG::Ref().between(-10, 10);
 			}

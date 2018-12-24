@@ -56,10 +56,7 @@ int Element_PUMP::update(UPDATE_FUNC_ARGS)
 	}
 	else
 	{
-		if (parts[i].temp >= 256.0+273.15)
-			parts[i].temp = 256.0+273.15;
-		if (parts[i].temp <= -256.0+273.15)
-			parts[i].temp = -256.0+273.15;
+		parts[i].temp = restrict_flt(parts[i].temp, (UFixed)(-256.0 + 273.15), (UFixed)(256.0 + 273.15));
 
 		for (rx = -1; rx <= 1; rx++)
 			for (ry = -1; ry <= 1; ry++)
@@ -67,7 +64,7 @@ int Element_PUMP::update(UPDATE_FUNC_ARGS)
 				if (parts[i].tmp != 1)
 				{
 					if (!(rx && ry))
-						sim->pv[(y/CELL)+ry][(x/CELL)+rx] += 0.1f*((parts[i].temp-273.15)-sim->pv[(y/CELL)+ry][(x/CELL)+rx]);
+						sim->pv[(y/CELL)+ry][(x/CELL)+rx] += 0.1f*(((float)parts[i].temp-273.15)-sim->pv[(y/CELL)+ry][(x/CELL)+rx]);
 				}
 				else
 				{

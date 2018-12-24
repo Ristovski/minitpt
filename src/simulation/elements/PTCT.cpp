@@ -47,8 +47,8 @@ Element_PTCT::Element_PTCT()
 //#TPT-Directive ElementHeader Element_PTCT static int update(UPDATE_FUNC_ARGS)
 int Element_PTCT::update(UPDATE_FUNC_ARGS)
 {
-	if (parts[i].temp>295.0f)
-		parts[i].temp -= 2.5f;
+	if (parts[i].temp > (UFixed)295.0f)
+		parts[i].temp -= (UFixed)2.5f;
 	return 0;
 }
 

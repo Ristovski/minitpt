@@ -1339,10 +1339,12 @@ void Renderer::render_parts()
 						graphicscache[t].fireb = fireb;
 					}
 				}
-				if((elements[t].Properties & PROP_HOT_GLOW) && sim->parts[i].temp>(elements[t].HighTemperature-800.0f))
+				if((elements[t].Properties & PROP_HOT_GLOW) && sim->parts[i].temp>(elements[t].HighTemperature-(UFixed)800.0f))
 				{
-					gradv = 3.1415/(2*elements[t].HighTemperature-(elements[t].HighTemperature-800.0f));
-					caddress = (sim->parts[i].temp>elements[t].HighTemperature)?elements[t].HighTemperature-(elements[t].HighTemperature-800.0f):sim->parts[i].temp-(elements[t].HighTemperature-800.0f);
+					gradv = 3.1415/(2*(float)elements[t].HighTemperature-((float)elements[t].HighTemperature-800.0f));
+					caddress = (sim->parts[i].temp>elements[t].HighTemperature) ? 
+						(int)elements[t].HighTemperature-((int)elements[t].HighTemperature-800) :
+						(int)sim->parts[i].temp-((int)elements[t].HighTemperature-800);
 					colr += sin(gradv*caddress) * 226;;
 					colg += sin(gradv*caddress*4.55 +3.14) * 34;
 					colb += sin(gradv*caddress*2.22 +3.14) * 64;
@@ -1364,7 +1366,7 @@ void Renderer::render_parts()
 				//Alter colour based on display mode
 				if(colour_mode & COLOUR_HEAT)
 				{
-					caddress = restrict_flt((int)( restrict_flt((float)(sim->parts[i].temp+(-MIN_TEMP)), 0.0f, MAX_TEMP+(-MIN_TEMP)) / ((MAX_TEMP+(-MIN_TEMP))/1024) ) *3, 0.0f, (1024.0f*3)-3);
+					caddress = 0; //restrict_flt((int)( restrict_flt((float)(sim->parts[i].temp+(-MIN_TEMP)), 0.0f, MAX_TEMP+(-MIN_TEMP)) / ((MAX_TEMP+(-MIN_TEMP))/1024) ) *3, 0.0f, (1024.0f*3)-3);
 					firea = 255;
 					firer = colr = color_data[caddress];
 					fireg = colg = color_data[caddress+1];
@@ -1442,7 +1444,7 @@ void Renderer::render_parts()
 				if (colour_mode & COLOUR_GRAD)
 				{
 					float frequency = 0.05;
-					int q = sim->parts[i].temp-40;
+					int q = (int)sim->parts[i].temp-40;
 					colr = sin(frequency*q) * 16 + colr;
 					colg = sin(frequency*q) * 16 + colg;
 					colb = sin(frequency*q) * 16 + colb;
@@ -2019,7 +2021,7 @@ void Renderer::render_parts()
 					// draw lines connecting wifi/portal channels
 					if (mousePos.X == nx && mousePos.Y == ny && i == ID(sim->pmap[ny][nx]) && debugLines)
 					{
-						int type = parts[i].type, tmp = (int)((parts[i].temp-73.15f)/100+1), othertmp;
+						int type = parts[i].type, tmp = (int)(((float)parts[i].temp-73.15f)/100+1), othertmp;
 						if (type == PT_PRTI)
 							type = PT_PRTO;
 						else if (type == PT_PRTO)
@@ -2028,7 +2030,7 @@ void Renderer::render_parts()
 						{
 							if (parts[z].type == type)
 							{
-								othertmp = (int)((parts[z].temp-73.15f)/100+1);
+								othertmp = (int)(((float)parts[z].temp-73.15f)/100+1);
 								if (tmp == othertmp)
 									xor_line(nx,ny,(int)(parts[z].x+0.5f),(int)(parts[z].y+0.5f));
 							}
@@ -2390,7 +2392,7 @@ void Renderer::draw_air()
 			else if (display_mode & DISPLAY_AIRH)
 			{
 				float ttemp = hv[y][x]+(-MIN_TEMP);
-				int caddress = restrict_flt((int)( restrict_flt(ttemp, 0.0f, MAX_TEMP+(-MIN_TEMP)) / ((MAX_TEMP+(-MIN_TEMP))/1024) ) *3, 0.0f, (1024.0f*3)-3);
+				int caddress = restrict_flt((int)( restrict_flt(ttemp, 0.0f, (float)(MAX_TEMP+(-MIN_TEMP))) / ((MAX_TEMP+(-MIN_TEMP))/1024) ) *3, 0, 1024*3-3);
 				c = PIXRGB((int)(color_data[caddress]*0.7f), (int)(color_data[caddress+1]*0.7f), (int)(color_data[caddress+2]*0.7f));
 				//c  = PIXRGB(clamp_flt(fabsf(vx[y][x]), 0.0f, 8.0f),//vx adds red
 				//	clamp_flt(hv[y][x], 0.0f, 1600.0f),//heat adds green

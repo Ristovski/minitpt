@@ -62,7 +62,7 @@ int Element_WATR::update(UPDATE_FUNC_ARGS)
 					if (RNG::Ref().chance(1, 3))
 						sim->part_change_type(ID(r),x+rx,y+ry,PT_SLTW);
 				}
-				else if ((TYP(r)==PT_RBDM||TYP(r)==PT_LRBD) && (sim->legacy_enable||parts[i].temp>(273.15f+12.0f)) && RNG::Ref().chance(1, 100))
+				else if ((TYP(r)==PT_RBDM||TYP(r)==PT_LRBD) && (sim->legacy_enable||parts[i].temp>(UFixed)(273.15f+12.0f)) && RNG::Ref().chance(1, 100))
 				{
 					sim->part_change_type(i,x,y,PT_FIRE);
 					parts[i].life = 4;

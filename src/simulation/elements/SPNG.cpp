@@ -50,7 +50,7 @@ int Element_SPNG::update(UPDATE_FUNC_ARGS)
 {
 	int r, trade, rx, ry, tmp, np;
 	int limit = 50;
-	if (parts[i].life<limit && sim->pv[y/CELL][x/CELL]<=3&&sim->pv[y/CELL][x/CELL]>=-3&&parts[i].temp<=374.0f)
+	if (parts[i].life<limit && sim->pv[y/CELL][x/CELL]<=3&&sim->pv[y/CELL][x/CELL]>=-3&&parts[i].temp <= (UFixed)374.0f)
 	{
 		int absorbChanceDenom = parts[i].life*10000/limit + 500;
 		for (rx=-1; rx<2; rx++)
@@ -161,7 +161,7 @@ int Element_SPNG::update(UPDATE_FUNC_ARGS)
 		parts[i].life -= parts[i].life/3;
 	if (tmp>1)
 		tmp = tmp/2;
-	if (tmp || parts[i].temp>=374)
+	if (tmp || parts[i].temp >= (UFixed)374)
 		for (rx=-1; rx<2; rx++)
 			for (ry=-1; ry<2; ry++)
 				if (BOUNDS_CHECK && (rx || ry))
@@ -175,7 +175,7 @@ int Element_SPNG::update(UPDATE_FUNC_ARGS)
 							parts[np].temp = parts[i].temp;
 							tmp--;
 							parts[i].life--;
-							parts[i].temp -= 20.0f;
+							parts[i].temp -= (UFixed)20;
 						}
 					}
 				}

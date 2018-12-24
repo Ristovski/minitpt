@@ -106,7 +106,7 @@ int Element_SOAP::update(UPDATE_FUNC_ARGS)
 			parts[i].tmp = parts[i].tmp2 = parts[i].ctype = 0;
 			return 0;
 		}
-		if (parts[i].temp>FREEZING)
+		if (parts[i].temp > (UFixed)FREEZING)
 		{
 			if (parts[i].life<=0)
 			{
@@ -160,7 +160,7 @@ int Element_SOAP::update(UPDATE_FUNC_ARGS)
 							r = pmap[y+ry][x+rx];
 							if (!r && !sim->bmap[(y+ry)/CELL][(x+rx)/CELL])
 								continue;
-							if (parts[i].temp>FREEZING)
+							if (parts[i].temp > (UFixed)FREEZING)
 							{
 								if (sim->bmap[(y+ry)/CELL][(x+rx)/CELL]
 									|| (r && !(sim->elements[TYP(r)].Properties&TYPE_GAS)

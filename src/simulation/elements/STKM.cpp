@@ -83,9 +83,9 @@ int Element_STKM::run_stickman(playerst *playerp, UPDATE_FUNC_ARGS) {
 	playerp->frames++;
 
 	//Temperature handling
-	if (parts[i].temp<243)
+	if (parts[i].temp < (UFixed)243)
 		parts[i].life -= 1;
-	if ((parts[i].temp<309.6f) && (parts[i].temp>=243))
+	if ((parts[i].temp < (UFixed)309.6f) && (parts[i].temp >= (UFixed)243))
 		parts[i].temp += 1;
 
 	//Death
@@ -369,14 +369,6 @@ int Element_STKM::run_stickman(playerst *playerp, UPDATE_FUNC_ARGS) {
 					continue;
 
 				STKM_set_element(sim, playerp, TYP(r));
-				if (TYP(r) == PT_PLNT && parts[i].life<100) //Plant gives him 5 HP
-				{
-					if (parts[i].life<=95)
-						parts[i].life += 5;
-					else
-						parts[i].life = 100;
-					sim->kill_part(ID(r));
-				}
 
 				if (TYP(r) == PT_NEUT)
 				{
@@ -469,7 +461,7 @@ int Element_STKM::run_stickman(playerst *playerp, UPDATE_FUNC_ARGS) {
 						angle+=360;
 					parts[np].tmp = angle;
 					parts[np].life = RNG::Ref().between(0, 1+power/15) + power/7;
-					parts[np].temp = parts[np].life*power/2.5;
+					parts[np].temp = (UFixed)(parts[np].life*power/2.5);
 					parts[np].tmp2 = 1;
 				}
 				else if (!playerp->fan)
@@ -595,7 +587,7 @@ void Element_STKM::STKM_interact(Simulation *sim, playerst *playerp, int i, int 
 			sim->parts[i].life -= RNG::Ref().between(32, 51);
 		}
 
-		if (sim->elements[TYP(r)].HeatConduct && (TYP(r)!=PT_HSWC||sim->parts[ID(r)].life==10) && ((playerp->elem!=PT_LIGH && sim->parts[ID(r)].temp>=323) || sim->parts[ID(r)].temp<=243) && (!playerp->rocketBoots || TYP(r)!=PT_PLSM))
+		if (sim->elements[TYP(r)].HeatConduct && (TYP(r)!=PT_HSWC||sim->parts[ID(r)].life==10) && ((playerp->elem!=PT_LIGH && sim->parts[ID(r)].temp >= (UFixed)323) || sim->parts[ID(r)].temp <= (UFixed)243) && (!playerp->rocketBoots || TYP(r)!=PT_PLSM))
 		{
 			sim->parts[i].life -= 2;
 			playerp->accs[3] -= 1;
@@ -618,7 +610,7 @@ void Element_STKM::STKM_interact(Simulation *sim, playerst *playerp, int i, int 
 		if (TYP(r)==PT_PRTI && sim->parts[i].type)
 		{
 			int nnx, count=1;//gives rx=0, ry=1 in update_PRTO
-			sim->parts[ID(r)].tmp = (int)((sim->parts[ID(r)].temp-73.15f)/100+1);
+			sim->parts[ID(r)].tmp = (int)(((float)sim->parts[ID(r)].temp-73.15f)/100+1);
 			if (sim->parts[ID(r)].tmp>=CHANNELS) sim->parts[ID(r)].tmp = CHANNELS-1;
 			else if (sim->parts[ID(r)].tmp<0) sim->parts[ID(r)].tmp = 0;
 			for (nnx=0; nnx<80; nnx++)
@@ -637,7 +629,7 @@ void Element_STKM::STKM_interact(Simulation *sim, playerst *playerp, int i, int 
 		{
 			if (!sim->legacy_enable)
 			{
-				sim->parts[ID(r)].temp = restrict_flt(sim->parts[ID(r)].temp+sim->parts[i].temp/2, MIN_TEMP, MAX_TEMP);
+				sim->parts[ID(r)].temp = restrict_flt(sim->parts[ID(r)].temp+sim->parts[i].temp/2, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 			}
 			sim->kill_part(i);
 		}

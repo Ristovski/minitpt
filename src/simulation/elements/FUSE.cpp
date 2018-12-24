@@ -78,7 +78,7 @@ int Element_FUSE::update(UPDATE_FUNC_ARGS)
 				r = pmap[y+ry][x+rx];
 				if (!r)
 					continue;
-				if (TYP(r)==PT_SPRK || (parts[i].temp>=(273.15+700.0f) && RNG::Ref().chance(1, 20)))
+				if (TYP(r)==PT_SPRK || (parts[i].temp >= (UFixed)(273.15+700.0f) && RNG::Ref().chance(1, 20)))
 				{
 					if (parts[i].life > 40)
 						parts[i].life = 39;

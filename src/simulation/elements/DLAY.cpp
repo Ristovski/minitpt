@@ -52,8 +52,8 @@ int Element_DLAY::update(UPDATE_FUNC_ARGS)
 	oldl = parts[i].life;
 	if (parts[i].life>0)
 		parts[i].life--;
-	if (parts[i].temp<= 1.0f+273.15f)
-		parts[i].temp = 1.0f+273.15f;
+	if (parts[i].temp <= (UFixed)(1.0f+273.15f))
+		parts[i].temp = (UFixed)(1.0f+273.15f);
 	for (rx=-2; rx<3; rx++)
 		for (ry=-2; ry<3; ry++)
 			if (BOUNDS_CHECK && (rx || ry))
@@ -63,7 +63,7 @@ int Element_DLAY::update(UPDATE_FUNC_ARGS)
 					continue;
 				if (TYP(r)==PT_SPRK && parts[i].life==0 && parts[ID(r)].life>0 && parts[ID(r)].life<4 && parts[ID(r)].ctype==PT_PSCN)
 				{
-					parts[i].life = (int)(parts[i].temp-273.15f+0.5f);
+					parts[i].life = (int)((float)parts[i].temp-273.15f+0.5f);
 				}
 				else if (TYP(r)==PT_DLAY)
 				{
@@ -97,7 +97,7 @@ int Element_DLAY::update(UPDATE_FUNC_ARGS)
 int Element_DLAY::graphics(GRAPHICS_FUNC_ARGS)
 
 {
-	int stage = (int)(((float)cpart->life/(cpart->temp-273.15))*100.0f);
+	int stage = (int)(((float)cpart->life/((float)cpart->temp-273.15))*100.0f);
 	*colr += stage;
 	*colg += stage;
 	*colb += stage;

@@ -2254,12 +2254,6 @@ void Simulation::init_can_move()
 		//nothing moves through EMBR (not sure why, but it's killed when it touches anything)
 		can_move[movingType][PT_EMBR] = 0;
 		can_move[PT_EMBR][movingType] = 0;
-		//Energy particles move through VIBR and BVBR, so it can absorb them
-		if (elements[movingType].Properties & TYPE_ENERGY)
-		{
-			can_move[movingType][PT_VIBR] = 1;
-			can_move[movingType][PT_BVBR] = 1;
-		}
 
 		//SAWD cannot be displaced by other powders
 		if (elements[movingType].Properties & TYPE_PART)
@@ -2275,7 +2269,7 @@ void Simulation::init_can_move()
 		 || destinationType == PT_ISOZ || destinationType == PT_ISZS || destinationType == PT_QRTZ || destinationType == PT_PQRT
 		 || destinationType == PT_H2   || destinationType == PT_BGLA || destinationType == PT_C5)
 			can_move[PT_PHOT][destinationType] = 2;
-		if (destinationType != PT_DMND && destinationType != PT_INSL && destinationType != PT_VOID && destinationType != PT_PVOD && destinationType != PT_VIBR && destinationType != PT_BVBR && destinationType != PT_PRTI && destinationType != PT_PRTO)
+		if (destinationType != PT_DMND && destinationType != PT_INSL && destinationType != PT_VOID && destinationType != PT_PVOD && destinationType != PT_PRTI && destinationType != PT_PRTO)
 		{
 			can_move[PT_PROT][destinationType] = 2;
 			can_move[PT_GRVT][destinationType] = 2;
@@ -2434,7 +2428,7 @@ int Simulation::try_move(int i, int x, int y, int nx, int ny)
 				parts[ID(r)].temp = parts[i].temp;
 
 			if (rt < PT_NUM && elements[rt].HeatConduct && (rt!=PT_HSWC||parts[ID(r)].life==10) && rt!=PT_FILT)
-				parts[i].temp = parts[ID(r)].temp = restrict_flt((parts[ID(r)].temp+parts[i].temp)/2, MIN_TEMP, MAX_TEMP);
+				parts[i].temp = parts[ID(r)].temp = restrict_flt((parts[ID(r)].temp+parts[i].temp)/2, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 		}
 		else if ((parts[i].type==PT_NEUT || parts[i].type==PT_ELEC) && (rt==PT_CLNE || rt==PT_PCLN || rt==PT_BCLN || rt==PT_PBCN))
 		{
@@ -2450,7 +2444,7 @@ int Simulation::try_move(int i, int x, int y, int nx, int ny)
 					break;
 			}
 			count = count%8;
-			parts[ID(r)].tmp = (int)((parts[ID(r)].temp-73.15f)/100+1);
+			parts[ID(r)].tmp = (int)(((float)parts[ID(r)].temp-73.15f)/100+1);
 			if (parts[ID(r)].tmp>=CHANNELS) parts[ID(r)].tmp = CHANNELS-1;
 			else if (parts[ID(r)].tmp<0) parts[ID(r)].tmp = 0;
 			for ( nnx=0; nnx<80; nnx++)
@@ -2554,7 +2548,7 @@ int Simulation::try_move(int i, int x, int y, int nx, int ny)
 				if (parts[ID(r)].life == 0)
 				{
 					part_change_type(i, x, y, PT_GRVT);
-					parts[i].tmp = parts[ID(r)].temp - 273.15f;
+					parts[i].tmp = parts[ID(r)].temp - (UFixed)273.15f;
 				}
 				break;
 			}
@@ -2599,7 +2593,7 @@ int Simulation::try_move(int i, int x, int y, int nx, int ny)
 		// this is where blackhole eats particles
 		if (!legacy_enable)
 		{
-			parts[ID(r)].temp = restrict_flt(parts[ID(r)].temp+parts[i].temp/2, MIN_TEMP, MAX_TEMP);//3.0f;
+			parts[ID(r)].temp = restrict_flt(parts[ID(r)].temp+parts[i].temp/2, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);//3.0f;
 		}
 		kill_part(i);
 		return 0;
@@ -2610,7 +2604,7 @@ int Simulation::try_move(int i, int x, int y, int nx, int ny)
 		{
 			if (!legacy_enable)
 			{
-				parts[ID(r)].temp = restrict_flt(parts[ID(r)].temp - (MAX_TEMP-parts[i].temp)/2, MIN_TEMP, MAX_TEMP);
+				parts[ID(r)].temp = restrict_flt(parts[ID(r)].temp - ((UFixed)MAX_TEMP-parts[i].temp)/2, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 			}
 			kill_part(i);
 			return 0;
@@ -2622,15 +2616,6 @@ int Simulation::try_move(int i, int x, int y, int nx, int ny)
 			if(parts[ID(r)].life < 6000)
 				parts[ID(r)].life += 1;
 			parts[ID(r)].temp = 0;
-			kill_part(i);
-			return 0;
-		}
-		break;
-	case PT_VIBR:
-	case PT_BVBR:
-		if ((elements[parts[i].type].Properties & TYPE_ENERGY))
-		{
-			parts[ID(r)].tmp += 20;
 			kill_part(i);
 			return 0;
 		}
@@ -3079,8 +3064,8 @@ int Simulation::create_part(int p, int x, int y, int t, int v)
 		parts[index].life = 4;
 		parts[index].ctype = type;
 		pmap[y][x] = (pmap[y][x]&~PMAPMASK) | PT_SPRK;
-		if (parts[index].temp+10.0f < 673.0f && !legacy_enable && (type==PT_METL || type == PT_BMTL || type == PT_BRMT || type == PT_PSCN || type == PT_NSCN || type == PT_ETRD || type == PT_NBLE || type == PT_IRON))
-			parts[index].temp = parts[index].temp+10.0f;
+		if (parts[index].temp+(UFixed)10.0f < (UFixed)673.0f && !legacy_enable && (type==PT_METL || type == PT_BMTL || type == PT_BRMT || type == PT_PSCN || type == PT_NSCN || type == PT_ETRD || type == PT_NBLE || type == PT_IRON))
+			parts[index].temp = parts[index].temp+(UFixed)10.0f;
 		return index;
 	}
 	else if (t==PT_SPAWN && elementCount[PT_SPAWN])
@@ -3215,7 +3200,7 @@ int Simulation::create_part(int p, int x, int y, int t, int v)
 	parts[i].tmp2 = 0;
 	parts[i].dcolour = 0;
 	parts[i].flags = 0;
-	if (t == PT_GLAS || t == PT_QRTZ || t == PT_TUNG)
+	if (t == PT_GLAS || t == PT_QRTZ)
 	{
 		parts[i].pavg[0] = 0.0f;
 		parts[i].pavg[1] = pv[y/CELL][x/CELL];
@@ -3331,14 +3316,6 @@ int Simulation::create_part(int p, int x, int y, int t, int v)
 	case PT_TSNS:
 	case PT_LSNS:
 		parts[i].tmp2 = 2;
-		break;
-	case PT_VINE:
-		parts[i].tmp = 1;
-		break;
-	case PT_VIRS:
-	case PT_VRSS:
-	case PT_VRSG:
-		parts[i].pavg[1] = 250;
 		break;
 	case PT_CRMC:
 		parts[i].tmp2 = RNG::Ref().between(0, 4);
@@ -3575,7 +3552,7 @@ void Simulation::create_gain_photon(int pp)//photons from PHOT going through GLO
 	parts[i].pavg[0] = parts[i].pavg[1] = 0.0f;
 	photons[ny][nx] = PMAP(i, PT_PHOT);
 
-	temp_bin = (int)((parts[i].temp-273.0f)*0.25f);
+	temp_bin = (int)(((float)parts[i].temp-273.0f)*0.25f);
 	if (temp_bin < 0) temp_bin = 0;
 	if (temp_bin > 25) temp_bin = 25;
 	parts[i].ctype = 0x1F << temp_bin;
@@ -3647,12 +3624,12 @@ void Simulation::delete_part(int x, int y)//calls kill_part with the particle lo
 void Simulation::UpdateParticles(int start, int end)
 {
 	int i, j, x, y, t, nx, ny, r, surround_space, s, rt, nt;
-	float mv, dx, dy, nrx, nry, dp, ctemph, ctempl, gravtot;
+	float mv, dx, dy, nrx, nry, dp, gravtot;
 	int fin_x, fin_y, clear_x, clear_y, stagnant;
 	float fin_xf, fin_yf, clear_xf, clear_yf;
 	float nn, ct1, ct2, swappage;
-	float pt = R_TEMP;
-	float c_heat = 0.0f;
+	UFixed pt = R_TEMP;
+	UFixed c_heat, ctemph, ctempl;
 	int h_count = 0;
 	int surround[8];
 	int surround_hconduct[8];
@@ -3836,10 +3813,10 @@ void Simulation::UpdateParticles(int start, int end)
 						pv[y/CELL][x/CELL] += (pt-hv[y/CELL][x/CELL])*0.004;
 						hv[y/CELL][x/CELL] = pt;
 #else
-						c_heat = (hv[y/CELL][x/CELL]-parts[i].temp)*0.04;
-						c_heat = restrict_flt(c_heat, -MAX_TEMP+MIN_TEMP, MAX_TEMP-MIN_TEMP);
-						parts[i].temp += c_heat;
-						hv[y/CELL][x/CELL] -= c_heat;
+						c_heat = (hv[y/CELL][x/CELL]-(float)parts[i].temp)*0.04;
+						c_heat = restrict_flt(c_heat, (UFixed)(-MAX_TEMP+MIN_TEMP), (UFixed)(MAX_TEMP-MIN_TEMP));
+						parts[i].temp = parts[i].temp + (UFixed)c_heat;
+						hv[y/CELL][x/CELL] -= (float)c_heat;
 #endif
 					}
 					c_heat = 0.0f;
@@ -3870,7 +3847,7 @@ void Simulation::UpdateParticles(int start, int end)
 							c_heat += parts[ID(r)].temp*96.645/elements[rt].HeatConduct*gel_scale*fabs(elements[rt].Weight);
 							c_Cm += 96.645/elements[rt].HeatConduct*gel_scale*fabs(elements[rt].Weight);
 #else
-							c_heat += parts[ID(r)].temp;
+							c_heat = c_heat + parts[ID(r)].temp;
 #endif
 							h_count++;
 						}
@@ -3890,7 +3867,7 @@ void Simulation::UpdateParticles(int start, int end)
 					parts[i].temp = restrict_flt(pt, MIN_TEMP, MAX_TEMP);
 #else
 					pt = (c_heat+parts[i].temp)/(h_count+1);
-					pt = parts[i].temp = restrict_flt(pt, MIN_TEMP, MAX_TEMP);
+					pt = parts[i].temp = restrict_flt(pt, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 					for (j=0; j<8; j++)
 					{
 						parts[surround_hconduct[j]].temp = pt;
@@ -3901,10 +3878,10 @@ void Simulation::UpdateParticles(int start, int end)
 					// change boiling point with pressure
 					if (((elements[t].Properties&TYPE_LIQUID) && IsValidElement(elements[t].HighTemperatureTransition) && (elements[elements[t].HighTemperatureTransition].Properties&TYPE_GAS))
 					        || t==PT_LNTG || t==PT_SLTW)
-						ctemph -= 2.0f*pv[y/CELL][x/CELL];
+						ctemph = ctemph - (UFixed)(2.0f*pv[y/CELL][x/CELL]);
 					else if (((elements[t].Properties&TYPE_GAS) && IsValidElement(elements[t].LowTemperatureTransition) && (elements[elements[t].LowTemperatureTransition].Properties&TYPE_LIQUID))
 					         || t==PT_WTRV)
-						ctempl -= 2.0f*pv[y/CELL][x/CELL];
+						ctempl = ctempl - (UFixed)(2.0f*pv[y/CELL][x/CELL]);
 					s = 1;
 
 					//A fix for ice with ctype = 0
@@ -3942,7 +3919,7 @@ void Simulation::UpdateParticles(int start, int end)
 									if (pt<elements[parts[i].ctype].LowTemperature)
 										s = 0;
 								}
-								else if (pt<273.15f)
+								else if (pt < (UFixed)273.15f)
 									s = 0;
 
 								if (s)
@@ -3997,17 +3974,7 @@ void Simulation::UpdateParticles(int start, int end)
 						}
 						else if (t == PT_BRMT)
 						{
-							if (parts[i].ctype == PT_TUNG)
-							{
-								if (ctemph < elements[parts[i].ctype].HighTemperature)
-									s = 0;
-								else
-								{
-									t = PT_LAVA;
-									parts[i].type = PT_TUNG;
-								}
-							}
-							else if (ctemph >= elements[t].HighTemperature)
+							if (ctemph >= elements[t].HighTemperature)
 								t = PT_LAVA;
 							else
 								s = 0;
@@ -4015,7 +3982,7 @@ void Simulation::UpdateParticles(int start, int end)
 						else if (t == PT_CRMC)
 						{
 							float pres = std::max((pv[y/CELL][x/CELL]+pv[(y-2)/CELL][x/CELL]+pv[(y+2)/CELL][x/CELL]+pv[y/CELL][(x-2)/CELL]+pv[y/CELL][(x+2)/CELL])*2.0f, 0.0f);
-							if (ctemph < pres+elements[PT_CRMC].HighTemperature)
+							if (ctemph < (UFixed)pres+elements[PT_CRMC].HighTemperature)
 								s = 0;
 							else
 								t = PT_LAVA;
@@ -4047,7 +4014,7 @@ void Simulation::UpdateParticles(int start, int end)
 #endif
 						else if (t == PT_WTRV)
 						{
-							if (pt < 273.0f)
+							if (pt < (UFixed)273.0f)
 								t = PT_RIME;
 							else
 								t = PT_DSTW;
@@ -4058,19 +4025,10 @@ void Simulation::UpdateParticles(int start, int end)
 							{
 								if (parts[i].ctype==PT_THRM&&pt>=elements[PT_BMTL].HighTemperature)
 									s = 0;
-								else if ((parts[i].ctype==PT_VIBR || parts[i].ctype==PT_BVBR) && pt>=273.15f)
-									s = 0;
-								else if (parts[i].ctype==PT_TUNG)
-								{
-									// TUNG does its own melting in its update function, so HighTemperatureTransition is not LAVA so it won't be handled by the code for HighTemperatureTransition==PT_LAVA below
-									// However, the threshold is stored in HighTemperature to allow it to be changed from Lua
-									if (pt>=elements[parts[i].ctype].HighTemperature)
-										s = 0;
-								}
 								else if (parts[i].ctype == PT_CRMC)
 								{
 									float pres = std::max((pv[y/CELL][x/CELL]+pv[(y-2)/CELL][x/CELL]+pv[(y+2)/CELL][x/CELL]+pv[y/CELL][(x-2)/CELL]+pv[y/CELL][(x+2)/CELL])*2.0f, 0.0f);
-									if (ctemph >= pres+elements[PT_CRMC].HighTemperature)
+									if (ctemph >= (UFixed)pres+elements[PT_CRMC].HighTemperature)
 										s = 0;
 								}
 								else if (elements[parts[i].ctype].HighTemperatureTransition == PT_LAVA || parts[i].ctype == PT_HEAC)
@@ -4078,7 +4036,7 @@ void Simulation::UpdateParticles(int start, int end)
 									if (pt >= elements[parts[i].ctype].HighTemperature)
 										s = 0;
 								}
-								else if (pt>=973.0f)
+								else if (pt >= (UFixed)973)
 									s = 0; // freezing point for lava with any other (not listed in ptransitions as turning into lava) ctype
 								if (s)
 								{
@@ -4096,7 +4054,7 @@ void Simulation::UpdateParticles(int start, int end)
 									}
 								}
 							}
-							else if (pt<973.0f)
+							else if (pt < (UFixed)973)
 								t = PT_STNE;
 							else
 								s = 0;
@@ -4153,10 +4111,10 @@ void Simulation::UpdateParticles(int start, int end)
 						transitionOccurred = true;
 					}
 
-					pt = parts[i].temp = restrict_flt(parts[i].temp, MIN_TEMP, MAX_TEMP);
+					pt = parts[i].temp = restrict_flt(parts[i].temp, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 					if (t == PT_LAVA)
 					{
-						parts[i].life = restrict_flt((parts[i].temp-700)/7, 0.0f, 400.0f);
+						parts[i].life = restrict_flt((parts[i].temp-(UFixed)700)/7, (UFixed)MIN_TEMP, (UFixed)400);
 						if (parts[i].ctype==PT_THRM&&parts[i].tmp>0)
 						{
 							parts[i].tmp--;
@@ -4173,13 +4131,13 @@ void Simulation::UpdateParticles(int start, int end)
 				{
 					if (!(air->bmap_blockairh[y/CELL][x/CELL]&0x8))
 						air->bmap_blockairh[y/CELL][x/CELL]++;
-					parts[i].temp = restrict_flt(parts[i].temp, MIN_TEMP, MAX_TEMP);
+					parts[i].temp = restrict_flt(parts[i].temp, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 				}
 			}
 
 			if (t==PT_LIFE)
 			{
-				parts[i].temp = restrict_flt(parts[i].temp-50.0f, MIN_TEMP, MAX_TEMP);
+				parts[i].temp = restrict_flt(parts[i].temp-(UFixed)50.0f, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 			}
 			if (t==PT_WIRE)
 			{
@@ -4223,7 +4181,7 @@ void Simulation::UpdateParticles(int start, int end)
 			if ((elements[t].Explosive&2) && pv[y/CELL][x/CELL]>2.5f)
 			{
 				parts[i].life = RNG::Ref().between(180, 259);
-				parts[i].temp = restrict_flt(elements[PT_FIRE].Temperature + (elements[t].Flammable/2), MIN_TEMP, MAX_TEMP);
+				parts[i].temp = restrict_flt(elements[PT_FIRE].Temperature + (elements[t].Flammable/2), (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 				t = PT_FIRE;
 				part_change_type(i,x,y,t);
 				pv[y/CELL][x/CELL] += 0.25f * CFDS;

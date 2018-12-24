@@ -50,8 +50,8 @@ int Element_DEUT::update(UPDATE_FUNC_ARGS)
 {
 	int r, rx, ry, trade, np;
 	float gravtot = fabs(sim->gravy[(y/CELL)*(XRES/CELL)+(x/CELL)])+fabs(sim->gravx[(y/CELL)*(XRES/CELL)+(x/CELL)]);
-	int maxlife = ((10000/(parts[i].temp + 1))-1);
-	if (RNG::Ref().chance(10000 % static_cast<int>(parts[i].temp + 1), static_cast<int>(parts[i].temp + 1)))
+	int maxlife = ((10000/((float)parts[i].temp + 1))-1);
+	if (RNG::Ref().chance(10000 % static_cast<int>(parts[i].temp + (UFixed)1), static_cast<int>(parts[i].temp + (UFixed)1)))
 		maxlife++;
 	// Compress when Newtonian gravity is applied
 	// multiplier=1 when gravtot=0, multiplier -> 5 as gravtot -> inf

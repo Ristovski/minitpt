@@ -51,10 +51,10 @@ int Element_MERC::update(UPDATE_FUNC_ARGS)
 	// Max number of particles that can be condensed into one
 	const int absorbScale = 10000;
 	// Obscure division by 0 fix
-	if (parts[i].temp + 1 == 0)
-		parts[i].temp = 0;
-	int maxtmp = (absorbScale/(parts[i].temp + 1))-1;
-	if (RNG::Ref().chance(absorbScale%((int)parts[i].temp+1), parts[i].temp+1))
+	//if (parts[i].temp + 1 == 0)
+		//parts[i].temp = 0;
+	int maxtmp = (absorbScale/((int)parts[i].temp + 1))-1;
+	if (RNG::Ref().chance(absorbScale%((int)parts[i].temp+1), (int)parts[i].temp+1))
 		maxtmp ++;
 
 	if (parts[i].tmp < 0)
@@ -114,16 +114,16 @@ int Element_MERC::update(UPDATE_FUNC_ARGS)
 				continue;
 			if (TYP(r)==PT_MERC&&(parts[i].tmp>parts[ID(r)].tmp)&&parts[i].tmp>0)//diffusion
 			{
-				int temp = parts[i].tmp - parts[ID(r)].tmp;
-				if (temp ==1)
+				UFixed temp = parts[i].tmp - parts[ID(r)].tmp;
+				if (temp == (UFixed)1)
 				{
 					parts[ID(r)].tmp ++;
 					parts[i].tmp --;
 				}
-				else if (temp>0)
+				else if (temp > (UFixed)0)
 				{
-					parts[ID(r)].tmp += temp/2;
-					parts[i].tmp -= temp/2;
+					parts[ID(r)].tmp += (int)(temp/2);
+					parts[i].tmp -= (int)(temp/2);
 				}
 			}
 		}

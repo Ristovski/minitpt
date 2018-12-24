@@ -86,7 +86,7 @@ int Element_CO2::update(UPDATE_FUNC_ARGS)
 					}
 				}
 			}
-	if (parts[i].temp > 9773.15 && sim->pv[y/CELL][x/CELL] > 200.0f)
+	if (parts[i].temp > (UFixed)9773.15 && sim->pv[y/CELL][x/CELL] > 200.0f)
 	{
 		if (RNG::Ref().chance(1, 5))
 		{
@@ -94,14 +94,14 @@ int Element_CO2::update(UPDATE_FUNC_ARGS)
 			sim->create_part(i,x,y,PT_O2);
 			j = sim->create_part(-3,x,y,PT_NEUT);
 			if (j != -1)
-				parts[j].temp = MAX_TEMP;
+				parts[j].temp = (UFixed)MAX_TEMP;
 			if (RNG::Ref().chance(1, 50))
 			{
 				j = sim->create_part(-3,x,y,PT_ELEC);
 				if (j != -1)
-					parts[j].temp = MAX_TEMP;
+					parts[j].temp = (UFixed)MAX_TEMP;
 			}
-			parts[i].temp = MAX_TEMP;
+			parts[i].temp = (UFixed)MAX_TEMP;
 			sim->pv[y/CELL][x/CELL] += 100;
 		}
 	}

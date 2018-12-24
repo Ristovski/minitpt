@@ -68,7 +68,7 @@ int Element_ELEC::update(UPDATE_FUNC_ARGS)
 								if (nb!=-1) {
 									parts[nb].tmp = 0;
 									parts[nb].life = 50;
-									parts[nb].temp = parts[i].temp*0.8f;
+									parts[nb].temp = (float)parts[i].temp*0.8f;
 									parts[nb].vx = RNG::Ref().between(-10, 10);
 									parts[nb].vy = RNG::Ref().between(-10, 10);
 								}
@@ -110,7 +110,7 @@ int Element_ELEC::update(UPDATE_FUNC_ARGS)
 				case PT_NONE: //seems to speed up ELEC even if it isn't used
 					break;
 				default:
-					if ((sim->elements[rt].Properties & PROP_CONDUCTS) && (rt!=PT_NBLE||parts[i].temp<2273.15))
+					if ((sim->elements[rt].Properties & PROP_CONDUCTS) && (rt!=PT_NBLE||parts[i].temp < (UFixed)2273.15))
 					{
 						sim->create_part(-1, x+rx, y+ry, PT_SPRK);
 						sim->kill_part(i);

@@ -3,13 +3,14 @@
 
 #include <vector>
 #include "StructProperty.h"
+#include "Fixed.h"
 
 struct Particle
 {
 	int type;
 	int life, ctype;
 	float x, y, vx, vy;
-	float temp;
+	UFixed temp;
 	float pavg[2];
 	int flags;
 	int tmp;

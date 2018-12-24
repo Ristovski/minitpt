@@ -55,7 +55,7 @@ int Element_SPRK::update(UPDATE_FUNC_ARGS)
 	if (parts[i].life<=0)
 	{
 		if (ct==PT_WATR||ct==PT_SLTW||ct==PT_PSCN||ct==PT_NSCN||ct==PT_ETRD||ct==PT_INWR)
-			parts[i].temp = R_TEMP + 273.15f;
+			parts[i].temp = (UFixed)R_TEMP + (UFixed)273.15f;
 		if (ct<=0 || ct>=PT_NUM || !sim->elements[parts[i].ctype].Enabled)
 			ct = PT_METL;
 		parts[i].ctype = PT_NONE;
@@ -102,7 +102,7 @@ int Element_SPRK::update(UPDATE_FUNC_ARGS)
 			parts[i].life = RNG::Ref().between(50, 199);
 			sim->part_change_type(i,x,y,PT_PLSM);
 			parts[i].ctype = PT_NBLE;
-			if (parts[i].temp > 5273.15)
+			if (parts[i].temp > (UFixed)5273.15)
 				parts[i].tmp |= 0x4;
 			parts[i].temp = 3500;
 			sim->pv[y/CELL][x/CELL] += 1;
@@ -126,10 +126,10 @@ int Element_SPRK::update(UPDATE_FUNC_ARGS)
 							parts[p].life = RNG::Ref().between(0, 2+parts[i].tmp/15) + parts[i].tmp/7;
 							if (parts[i].life>60)
 								parts[i].life=60;
-							parts[p].temp=parts[p].life*parts[i].tmp/2.5;
+							parts[p].temp = (UFixed)(parts[p].life*parts[i].tmp/2.5);
 							parts[p].tmp2=1;
 							parts[p].tmp=atan2(-ry, (float)rx)/M_PI*360;
-							parts[i].temp-=parts[i].tmp*2+parts[i].temp/5; // slight self-cooling
+							parts[i].temp -= (UFixed)(parts[i].tmp*2+(float)parts[i].temp/5); // slight self-cooling
 							if (fabs(sim->pv[y/CELL][x/CELL])!=0.0f)
 							{
 								if (fabs(sim->pv[y/CELL][x/CELL])<=0.5f)
@@ -159,10 +159,6 @@ int Element_SPRK::update(UPDATE_FUNC_ARGS)
 					}
 				}
 		break;
-	case PT_TUNG:
-		if(parts[i].temp < 3595.0){
-			parts[i].temp += RNG::Ref().between(-4, 15);
-		}
 	default:
 		break;
 	}
@@ -275,11 +271,11 @@ int Element_SPRK::update(UPDATE_FUNC_ARGS)
 						goto conduct;
 					continue;
 				case PT_NTCT:
-					if (receiver==PT_PSCN || (receiver==PT_NSCN && parts[i].temp>373.0f))
+					if (receiver==PT_PSCN || (receiver==PT_NSCN && parts[i].temp > (UFixed)373.0f))
 						goto conduct;
 					continue;
 				case PT_PTCT:
-					if (receiver==PT_PSCN || (receiver==PT_NSCN && parts[i].temp<373.0f))
+					if (receiver==PT_PSCN || (receiver==PT_NSCN && parts[i].temp < (UFixed)373.0f))
 						goto conduct;
 					continue;
 				case PT_INWR:
@@ -293,15 +289,15 @@ int Element_SPRK::update(UPDATE_FUNC_ARGS)
 				switch (receiver)
 				{
 				case PT_QRTZ:
-					if ((sender==PT_NSCN||sender==PT_METL||sender==PT_PSCN||sender==PT_QRTZ) && (parts[ID(r)].temp<173.15||sim->pv[(y+ry)/CELL][(x+rx)/CELL]>8))
+					if ((sender==PT_NSCN||sender==PT_METL||sender==PT_PSCN||sender==PT_QRTZ) && (parts[ID(r)].temp < (UFixed)173.15||sim->pv[(y+ry)/CELL][(x+rx)/CELL]>8))
 						goto conduct;
 					continue;
 				case PT_NTCT:
-					if (sender==PT_NSCN || (sender==PT_PSCN&&parts[ID(r)].temp>373.0f))
+					if (sender==PT_NSCN || (sender==PT_PSCN&&parts[ID(r)].temp > (UFixed)373.0f))
 						goto conduct;
 					continue;
 				case PT_PTCT:
-					if (sender==PT_NSCN || (sender==PT_PSCN&&parts[ID(r)].temp<373.0f))
+					if (sender==PT_NSCN || (sender==PT_PSCN&&parts[ID(r)].temp < (UFixed)373.0f))
 						goto conduct;
 					continue;
 				case PT_INWR:
@@ -344,8 +340,8 @@ int Element_SPRK::update(UPDATE_FUNC_ARGS)
 					parts[ID(r)].life = 4;
 					parts[ID(r)].ctype = receiver;
 					sim->part_change_type(ID(r),x+rx,y+ry,PT_SPRK);
-					if (parts[ID(r)].temp+10.0f<673.0f&&!sim->legacy_enable&&(receiver==PT_METL||receiver==PT_BMTL||receiver==PT_BRMT||receiver==PT_PSCN||receiver==PT_NSCN||receiver==PT_ETRD||receiver==PT_NBLE||receiver==PT_IRON))
-						parts[ID(r)].temp = parts[ID(r)].temp+10.0f;
+					if ((float)parts[ID(r)].temp + 10.0f<673.0f&&!sim->legacy_enable&&(receiver==PT_METL||receiver==PT_BMTL||receiver==PT_BRMT||receiver==PT_PSCN||receiver==PT_NSCN||receiver==PT_ETRD||receiver==PT_NBLE||receiver==PT_IRON))
+						parts[ID(r)].temp = parts[ID(r)].temp + (UFixed)10.0f;
 				}
 				else if (!parts[ID(r)].life && sender==PT_ETRD && parts[i].life==5) //ETRD is odd and conducts to others only at life 5, this could probably be somewhere else
 				{

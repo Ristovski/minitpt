@@ -48,9 +48,9 @@ Element_BRMT::Element_BRMT()
 int Element_BRMT::update(UPDATE_FUNC_ARGS)
 {
 	int r, rx, ry, tempFactor;
-	if (parts[i].temp > 523.15f)//250.0f+273.15f
+	if (parts[i].temp > (UFixed)523.15f)//250.0f+273.15f
 	{
-		tempFactor = 1000 - ((523.15f-parts[i].temp)*2);
+		tempFactor = 1000 - ((523.15f-(float)parts[i].temp)*2);
 		if(tempFactor < 2)
 			tempFactor = 2;
 		for (rx=-1; rx<2; rx++)

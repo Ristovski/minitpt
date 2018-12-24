@@ -71,28 +71,6 @@ int Element_EXOT::update(UPDATE_FUNC_ARGS)
 					if (parts[ID(r)].life == 1500 && RNG::Ref().chance(1, 1000))
 						parts[i].life = 1500;
 				}
-				else if (rt == PT_LAVA)
-				{
-					//turn molten TTAN or molten GOLD to molten VIBR
-					if (parts[ID(r)].ctype == PT_TTAN || parts[ID(r)].ctype == PT_GOLD)
-					{
-						if (RNG::Ref().chance(1, 10))
-						{
-							parts[ID(r)].ctype = PT_VIBR;
-							sim->kill_part(i);
-							return 1;
-						}
-					}
-					//molten VIBR will kill the leftover EXOT though, so the VIBR isn't killed later
-					else if (parts[ID(r)].ctype == PT_VIBR)
-					{
-						if (RNG::Ref().chance(1, 1000))
-						{
-							sim->kill_part(i);
-							return 1;
-						}
-					}
-				}
 				if (parts[i].tmp > 245 && parts[i].life > 1337)
 					if (rt!=PT_EXOT && rt!=PT_BREC && rt!=PT_DMND && rt!=PT_CLNE && rt!=PT_PRTI && rt!=PT_PRTO && rt!=PT_PCLN && rt!=PT_VOID && rt!=PT_NBHL && rt!=PT_WARP)
 					{
@@ -121,7 +99,7 @@ int Element_EXOT::update(UPDATE_FUNC_ARGS)
 	else if(parts[i].life < 1001)
 		sim->pv[y/CELL][x/CELL] += (parts[i].tmp2*CFDS)/160000;
 
-	if (sim->pv[y/CELL][x/CELL]>200 && parts[i].temp>9000 && parts[i].tmp2>200)
+	if (sim->pv[y/CELL][x/CELL]>200 && parts[i].temp > (UFixed)9000 && parts[i].tmp2>200)
 	{
 		parts[i].tmp2 = 6000;
 		sim->part_change_type(i, x, y, PT_WARP);
@@ -159,15 +137,15 @@ int Element_EXOT::update(UPDATE_FUNC_ARGS)
 	}
 	if (parts[i].ctype == PT_PROT)
 	{
-		if (parts[i].temp < 50.0f)
+		if (parts[i].temp < (UFixed)50)
 		{
 			sim->create_part(i, x, y, PT_CFLM);
 			return 1;
 		}
 		else
-			parts[i].temp -= 1.0f;
+			parts[i].temp -= (UFixed)1;
 	}
-	else if (parts[i].temp < 273.15f)
+	else if (parts[i].temp < (UFixed)273.15f)
 	{
 		parts[i].vx = 0;
 		parts[i].vy = 0;

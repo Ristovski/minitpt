@@ -72,11 +72,11 @@ int Element_CLST::update(UPDATE_FUNC_ARGS)
 				}
 				else if (TYP(r)==PT_CLST)
 				{
-					if(parts[i].temp <195)
+					if(parts[i].temp < (UFixed)195)
 						cxy = 0.05;
-					else if(parts[i].temp <295)
+					else if(parts[i].temp < (UFixed)295)
 						cxy = 0.015;
-					else if(parts[i].temp <350)
+					else if(parts[i].temp < (UFixed)350)
 						cxy = 0.01;
 					else
 						cxy = 0.005;

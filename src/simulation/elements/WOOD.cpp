@@ -50,25 +50,25 @@ Element_WOOD::Element_WOOD()
 //#TPT-Directive ElementHeader Element_WOOD static int update(UPDATE_FUNC_ARGS)
 int Element_WOOD::update(UPDATE_FUNC_ARGS)
 {
-	if (parts[i].temp > 450 && parts[i].temp > parts[i].tmp)
+	if (parts[i].temp > (UFixed)450 && parts[i].temp > (UFixed)parts[i].tmp)
 		parts[i].tmp = (int)parts[i].temp;
 	return 0;
 }
 //#TPT-Directive ElementHeader Element_WOOD static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_WOOD::graphics(GRAPHICS_FUNC_ARGS)
 {
-	float maxtemp = std::max((float)cpart->tmp, cpart->temp);
+	float maxtemp = std::max((float)cpart->tmp, (float)cpart->temp);
 	if (maxtemp > 400)
 	{
-		*colr -= (int)restrict_flt((maxtemp-400)/3,0,172);
-		*colg -= (int)restrict_flt((maxtemp-400)/4,0,140);
-		*colb -= (int)restrict_flt((maxtemp-400)/20,0,44);
+		*colr -= (int)restrict_flt((maxtemp-400.0f)/3,0.0f,172.0f);
+		*colg -= (int)restrict_flt((maxtemp-400.0f)/4,0.0f,140.0f);
+		*colb -= (int)restrict_flt((maxtemp-400.0f)/20,0.0f,44.0f);
 	}
 	if (maxtemp < 273)
 	{
-		*colr -= (int)restrict_flt((273-maxtemp)/5,0,40);
-		*colg += (int)restrict_flt((273-maxtemp)/4,0,40);
-		*colb += (int)restrict_flt((273-maxtemp)/1.5,0,150);
+		*colr -= (int)restrict_flt((273.0f-maxtemp)/5,0.0f,40.0f);
+		*colg += (int)restrict_flt((273.0f-maxtemp)/4,0.0f,40.0f);
+		*colb += (int)restrict_flt((273.0f-maxtemp)/1.5f,0.0f,150.0f);
 	}
 	return 0;
 }

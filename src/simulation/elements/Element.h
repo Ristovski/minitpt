@@ -5,6 +5,7 @@
 #include "simulation/Simulation.h"
 #include "simulation/Elements.h"
 #include "simulation/StructProperty.h"
+#include "Fixed.h"
 
 class Simulation;
 class Renderer;
@@ -29,14 +30,14 @@ public:
 	float Diffusion;
 	float HotAir;
 	int Falldown;
-	int Flammable;
+	UFixed Flammable;
 	int Explosive;
 	int Meltable;
 	int Hardness;
 	// Photon wavelengths are ANDed with this value when a photon hits an element, meaning that only wavelengths present in both this value and the original photon will remain in the reflected photon
 	unsigned int PhotonReflectWavelengths;
 	int Weight;
-	float Temperature;
+	UFixed Temperature;
 	unsigned char HeatConduct;
 	String Description;
 	unsigned int Properties;
@@ -45,9 +46,9 @@ public:
 	int LowPressureTransition;
 	float HighPressure;
 	int HighPressureTransition;
-	float LowTemperature;
+	UFixed LowTemperature;
 	int LowTemperatureTransition;
-	float HighTemperature;
+	UFixed HighTemperature;
 	int HighTemperatureTransition;
 
 	int (*Update) (UPDATE_FUNC_ARGS);

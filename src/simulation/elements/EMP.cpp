@@ -67,7 +67,7 @@ public:
 	}
 	void apply(Simulation *sim, Particle &p)
 	{
-		p.temp = restrict_flt(p.temp+getDelta(RNG::Ref().uniform01()), MIN_TEMP, MAX_TEMP);
+		p.temp = restrict_flt(p.temp+(UFixed)getDelta(RNG::Ref().uniform01()), (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 	}
 };
 
@@ -151,7 +151,7 @@ int Element_EMP::Trigger(Simulation *sim, int triggerCount)
 									if (RNG::Ref().uniform01() < prob_breakMETLMore)
 									{
 										sim->part_change_type(n, rx+nx, ry+ny, PT_BRMT);
-										parts[n].temp = restrict_flt(parts[n].temp+1000.0f, MIN_TEMP, MAX_TEMP);
+										parts[n].temp = restrict_flt(parts[n].temp+(UFixed)1000.0f, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 									}
 								}
 								break;
@@ -160,7 +160,7 @@ int Element_EMP::Trigger(Simulation *sim, int triggerCount)
 								if (RNG::Ref().uniform01() < prob_breakBMTL)
 								{
 									sim->part_change_type(n, rx+nx, ry+ny, PT_BRMT);
-									parts[n].temp = restrict_flt(parts[n].temp+1000.0f, MIN_TEMP, MAX_TEMP);
+									parts[n].temp = restrict_flt(parts[n].temp+(UFixed)1000.0f, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 								}
 								break;
 							case PT_WIFI:
@@ -172,7 +172,7 @@ int Element_EMP::Trigger(Simulation *sim, int triggerCount)
 								if (RNG::Ref().uniform01() < prob_breakWIFI)
 								{
 									sim->create_part(n, rx+nx, ry+ny, PT_BREC);
-									parts[n].temp = restrict_flt(parts[n].temp+1000.0f, MIN_TEMP, MAX_TEMP);
+									parts[n].temp = restrict_flt(parts[n].temp+(UFixed)1000.0f, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 								}
 								continue;
 							default:
@@ -190,7 +190,7 @@ int Element_EMP::Trigger(Simulation *sim, int triggerCount)
 							if (RNG::Ref().uniform01() < prob_breakARAY)
 							{
 								sim->create_part(n, rx+nx, ry+ny, PT_BREC);
-								parts[n].temp = restrict_flt(parts[n].temp+1000.0f, MIN_TEMP, MAX_TEMP);
+								parts[n].temp = restrict_flt(parts[n].temp+(UFixed)1000.0f, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 							}
 							break;
 						case PT_DLAY:

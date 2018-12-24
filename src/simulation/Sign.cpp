@@ -32,7 +32,7 @@ String sign::getText(Simulation *sim)
 		else if (text == "{t}")
 		{
 			if (x >= 0 && x < XRES && y >= 0 && y < YRES && sim->pmap[y][x])
-				return String::Build("Temp: ", Format::Precision(Format::ShowPoint(sim->parts[ID(sim->pmap[y][x])].temp - 273.15f), 2));
+				return String::Build("Temp: ", Format::Precision(Format::ShowPoint((float)sim->parts[ID(sim->pmap[y][x])].temp - 273.15f), 2));
 			else
 				return String::Build("Temp: ", Format::Precision(Format::ShowPoint(0), 2));
 		}

@@ -70,7 +70,7 @@ int Element_FSEP::update(UPDATE_FUNC_ARGS)
 					r = pmap[y+ry][x+rx];
 					if (!r)
 						continue;
-					if ((TYP(r)==PT_SPRK || (parts[i].temp>=(273.15+400.0f))) && parts[i].life>40 && RNG::Ref().chance(1, 15))
+					if ((TYP(r)==PT_SPRK || (parts[i].temp >= (UFixed)(273.15+400.0f))) && parts[i].life>40 && RNG::Ref().chance(1, 15))
 					{
 						parts[i].life = 39;
 					}

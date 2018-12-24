@@ -63,7 +63,7 @@ int Element_POLO::update(UPDATE_FUNC_ARGS)
 				parts[i].life = COOLDOWN;
 				parts[i].tmp++;
 
-				parts[i].temp = ((parts[i].temp + parts[s].temp) + 600.0f) / 2.0f;
+				parts[i].temp = ((parts[i].temp + parts[s].temp) + (UFixed)600) / 2;
 				parts[s].temp = parts[i].temp;
 			}
 		}
@@ -73,7 +73,7 @@ int Element_POLO::update(UPDATE_FUNC_ARGS)
 			int s = sim->create_part(-3, x, y, PT_NEUT);
 			if (s >= 0)
 			{
-				parts[i].temp = ((parts[i].temp + parts[ID(r)].temp + parts[ID(r)].temp) + 600.0f) / 3.0f;
+				parts[i].temp = ((parts[i].temp + parts[ID(r)].temp + parts[ID(r)].temp) + (UFixed)600) / 3;
 				parts[i].life = COOLDOWN;
 				parts[i].tmp++;
 
@@ -88,7 +88,7 @@ int Element_POLO::update(UPDATE_FUNC_ARGS)
 	if (parts[i].tmp2 >= 10)
 	{
 		sim->part_change_type(i,x,y,PT_PLUT);
-		parts[i].temp = (parts[i].temp+600.0f)/2.0f;
+		parts[i].temp = (parts[i].temp + (UFixed)600)/2;
 		return 1;
 	}
 	if (parts[ID(r)].type == PT_PROT)
@@ -96,9 +96,9 @@ int Element_POLO::update(UPDATE_FUNC_ARGS)
 		parts[i].tmp2++;
 		sim->kill_part(ID(r));
 	}
-	if (parts[i].temp < 388.15f)
+	if (parts[i].temp < (UFixed)388.15f)
 	{
-		parts[i].temp += 0.2f;
+		parts[i].temp += (UFixed)0.2f;
 	}
 	return 0;
 }

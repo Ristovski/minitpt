@@ -80,8 +80,8 @@ int Element_ACID::update(UPDATE_FUNC_ARGS)
 					{
 						if (sim->parts_avg(i, ID(r),PT_GLAS)!= PT_GLAS)//GLAS protects stuff from acid
 						{
-							float newtemp = ((60.0f-(float)sim->elements[rt].Hardness))*7.0f;
-							if(newtemp < 0){
+							UFixed newtemp = ((60.0f-(float)sim->elements[rt].Hardness))*7.0f;
+							if(newtemp < (UFixed)0){
 								newtemp = 0;
 							}
 							parts[i].temp += newtemp;

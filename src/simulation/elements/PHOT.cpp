@@ -54,7 +54,7 @@ int Element_PHOT::update(UPDATE_FUNC_ARGS)
 		sim->kill_part(i);
 		return 1;
 	}
-	if (parts[i].temp > 506)
+	if (parts[i].temp > (UFixed)506)
 		if (RNG::Ref().chance(1, 10))
 			Element_FIRE::update(UPDATE_FUNC_SUBCALL_ARGS);
 	for (rx=-1; rx<2; rx++)

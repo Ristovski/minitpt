@@ -27,15 +27,6 @@ unsigned clamp_flt(float f, float min, float max) //TODO: Also inline/macro
 	return (int)(255.0f*(f-min)/(max-min));
 }
 
-float restrict_flt(float f, float min, float max) //TODO Inline or macro or something
-{
-	if (f<min)
-		return min;
-	if (f>max)
-		return max;
-	return f;
-}
-
 char *mystrdup(const char *s)
 {
 	char *x;

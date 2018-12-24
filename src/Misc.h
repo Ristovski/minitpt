@@ -16,7 +16,15 @@ int isign(float i);
 
 unsigned clamp_flt(float f, float min, float max);
 
-float restrict_flt(float f, float min, float max);
+template<class number>
+number restrict_flt(number f, number min, number max)
+{
+	if (f<min)
+		return min;
+	if (f>max)
+		return max;
+	return f;
+}
 
 char *mystrdup(const char *s);
 

@@ -49,7 +49,7 @@ Element_WIFI::Element_WIFI()
 int Element_WIFI::update(UPDATE_FUNC_ARGS)
 {
 	int r, rx, ry;
-	parts[i].tmp = (int)((parts[i].temp-73.15f)/100+1);
+	parts[i].tmp = (int)(((float)parts[i].temp-73.15f)/100+1);
 	if (parts[i].tmp>=CHANNELS) parts[i].tmp = CHANNELS-1;
 	else if (parts[i].tmp<0) parts[i].tmp = 0;
 	for (rx=-1; rx<2; rx++)
@@ -84,7 +84,7 @@ int Element_WIFI::update(UPDATE_FUNC_ARGS)
 //#TPT-Directive ElementHeader Element_WIFI static int graphics(GRAPHICS_FUNC_ARGS)
 int Element_WIFI::graphics(GRAPHICS_FUNC_ARGS)
 {
-	int q = (int)((cpart->temp-73.15f)/100+1);
+	int q = (int)(((float)cpart->temp-73.15f)/100+1);
 	*colr = sin(FREQUENCY*q + 0) * 127 + 128;
 	*colg = sin(FREQUENCY*q + 2) * 127 + 128;
 	*colb = sin(FREQUENCY*q + 4) * 127 + 128;

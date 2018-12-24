@@ -70,7 +70,7 @@ int Element_PROT::update(UPDATE_FUNC_ARGS)
 	case PT_DEUT:
 		if (RNG::Ref().chance(-((int)sim->pv[y / CELL][x / CELL] - 4) + (parts[uID].life / 100), 200))
 		{
-			DeutImplosion(sim, parts[uID].life, x, y, restrict_flt(parts[uID].temp + parts[uID].life * 500, MIN_TEMP, MAX_TEMP), PT_PROT);
+			DeutImplosion(sim, parts[uID].life, x, y, restrict_flt((float)parts[uID].temp + parts[uID].life * 500, (float)MIN_TEMP, (float)MAX_TEMP), PT_PROT);
 			sim->kill_part(uID);
 		}
 		break;
@@ -87,14 +87,16 @@ int Element_PROT::update(UPDATE_FUNC_ARGS)
 		parts[uID].ctype = PT_PROT;
 		break;
 	case PT_WIFI:
-		float change;
-		if (parts[i].temp < 173.15f) change = -1000.0f;
-		else if (parts[i].temp < 273.15f) change = -100.0f;
-		else if (parts[i].temp > 473.15f) change = 1000.0f;
-		else if (parts[i].temp > 373.15f) change = 100.0f;
-		else change = 0.0f;
-		parts[uID].temp = restrict_flt(parts[uID].temp + change, MIN_TEMP, MAX_TEMP);
-		break;
+		{
+			UFixed change;
+			if (parts[i].temp < (UFixed)173.15f) change = -1000.0f;
+			else if (parts[i].temp < (UFixed)273.15f) change = -100.0f;
+			else if (parts[i].temp > (UFixed)473.15f) change = 1000.0f;
+			else if (parts[i].temp > (UFixed)373.15f) change = 100.0f;
+			else change = 0.0f;
+			parts[uID].temp = restrict_flt(parts[uID].temp + change, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
+			break;
+		}
 	case PT_NONE:
 		//slowly kill if it's not inside an element
 		if (parts[i].life)
@@ -105,10 +107,10 @@ int Element_PROT::update(UPDATE_FUNC_ARGS)
 		break;
 	default:
 		//set off explosives (only when hot because it wasn't as fun when it made an entire save explode)
-		if (parts[i].temp > 273.15f + 500.0f && (sim->elements[utype].Flammable || sim->elements[utype].Explosive || utype == PT_BANG))
+		if ((float)parts[i].temp > 273.15f + 500.0f && ((int)sim->elements[utype].Flammable || (int)sim->elements[utype].Explosive || utype == PT_BANG))
 		{
 			sim->create_part(uID, x, y, PT_FIRE);
-			parts[uID].temp += restrict_flt(sim->elements[utype].Flammable * 5, MIN_TEMP, MAX_TEMP);
+			parts[uID].temp += restrict_flt(sim->elements[utype].Flammable * 5, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 			sim->pv[y / CELL][x / CELL] += 1.00f;
 		}
 		//prevent inactive sparkable elements from being sparked
@@ -120,7 +122,7 @@ int Element_PROT::update(UPDATE_FUNC_ARGS)
 	}
 	//make temp of other things closer to it's own temperature. This will change temp of things that don't conduct, and won't change the PROT's temperature
 	if (utype && utype != PT_WIFI)
-		parts[uID].temp = restrict_flt(parts[uID].temp-(parts[uID].temp-parts[i].temp)/4.0f, MIN_TEMP, MAX_TEMP);
+		parts[uID].temp = restrict_flt(parts[uID].temp-(parts[uID].temp-parts[i].temp)/4, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 
 
 	//if this proton has collided with another last frame, change it into a heavier element
@@ -145,7 +147,7 @@ int Element_PROT::update(UPDATE_FUNC_ARGS)
 			element = PT_NBLE;
 		newID = sim->create_part(-1, x + RNG::Ref().between(-1, 1), y + RNG::Ref().between(-1, 1), element);
 		if (newID >= 0)
-			parts[newID].temp = restrict_flt(100.0f*parts[i].tmp, MIN_TEMP, MAX_TEMP);
+			parts[newID].temp = restrict_flt(100*parts[i].tmp, MIN_TEMP, MAX_TEMP);
 		sim->kill_part(i);
 		return 1;
 	}

@@ -76,7 +76,7 @@ int Element_FIRE::update(UPDATE_FUNC_ARGS)
 				parts[i].life = 0;
 				parts[i].ctype = PT_FIRE;
 			}
-			else if (parts[i].temp<625)
+			else if (parts[i].temp < (UFixed)625)
 			{
 				sim->part_change_type(i,x,y,PT_SMKE);
 				parts[i].life = RNG::Ref().between(250, 269);
@@ -136,7 +136,7 @@ int Element_FIRE::update(UPDATE_FUNC_ARGS)
 					if (parts[i].ctype == PT_QRTZ && rt == PT_LAVA && parts[ID(r)].ctype == PT_CLST)
 					{
 						float pres = std::max(sim->pv[y/CELL][x/CELL]*10.0f, 0.0f);
-						if (parts[i].temp >= pres+sim->elements[PT_CRMC].HighTemperature+50.0f)
+						if (parts[i].temp >= (UFixed)pres+sim->elements[PT_CRMC].HighTemperature+(UFixed)50.0f)
 						{
 							parts[i].ctype = PT_CRMC;
 							parts[ID(r)].ctype = PT_CRMC;
@@ -153,14 +153,14 @@ int Element_FIRE::update(UPDATE_FUNC_ARGS)
 				}
 
 				if ((surround_space || sim->elements[rt].Explosive) &&
-				    sim->elements[rt].Flammable && RNG::Ref().chance(sim->elements[rt].Flammable + (sim->pv[(y+ry)/CELL][(x+rx)/CELL] * 10.0f), 1000) &&
+				    (int)sim->elements[rt].Flammable && RNG::Ref().chance((int)sim->elements[rt].Flammable + (sim->pv[(y+ry)/CELL][(x+rx)/CELL] * 10.0f), 1000) &&
 				    //exceptions, t is the thing causing the spark and rt is what's burning
 				    (t != PT_SPRK || (rt != PT_RBDM && rt != PT_LRBD && rt != PT_INSL)) &&
 				    (t != PT_PHOT || rt != PT_INSL) &&
 				    (rt != PT_SPNG || parts[ID(r)].life == 0))
 				{
 					sim->part_change_type(ID(r), x+rx, y+ry, PT_FIRE);
-					parts[ID(r)].temp = restrict_flt(sim->elements[PT_FIRE].Temperature + (sim->elements[rt].Flammable/2), MIN_TEMP, MAX_TEMP);
+					parts[ID(r)].temp = restrict_flt(sim->elements[PT_FIRE].Temperature + (sim->elements[rt].Flammable/2), (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 					parts[ID(r)].life = RNG::Ref().between(180, 259);
 					parts[ID(r)].tmp = parts[ID(r)].ctype = 0;
 					if (sim->elements[rt].Explosive)

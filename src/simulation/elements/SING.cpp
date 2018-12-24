@@ -134,7 +134,7 @@ int Element_SING::update(UPDATE_FUNC_ARGS)
 						parts[i].life += 3;
 						parts[i].tmp++;
 					}
-					parts[i].temp = restrict_flt(parts[ID(r)].temp+parts[i].temp, MIN_TEMP, MAX_TEMP);
+					parts[i].temp = restrict_flt(parts[ID(r)].temp+parts[i].temp, (UFixed)MIN_TEMP, (UFixed)MAX_TEMP);
 					sim->kill_part(ID(r));
 				}
 			}

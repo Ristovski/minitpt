@@ -48,13 +48,13 @@ Element_NBLE::Element_NBLE()
 //#TPT-Directive ElementHeader Element_NBLE static int update(UPDATE_FUNC_ARGS)
 int Element_NBLE::update(UPDATE_FUNC_ARGS)
 {
-	if (parts[i].temp > 5273.15 && sim->pv[y/CELL][x/CELL] > 100.0f)
+	if (parts[i].temp > (UFixed)5273.15 && sim->pv[y/CELL][x/CELL] > 100.0f)
 	{
 		parts[i].tmp |= 0x1;
 		if (RNG::Ref().chance(1, 5))
 		{
 			int j;
-			float temp = parts[i].temp;
+			UFixed temp = parts[i].temp;
 			sim->create_part(i,x,y,PT_CO2);
 
 			j = sim->create_part(-3,x,y,PT_NEUT);
@@ -83,7 +83,7 @@ int Element_NBLE::update(UPDATE_FUNC_ARGS)
 					parts[j].tmp |= 4;
 				}
 			}
-			parts[i].temp = temp + 1750 + RNG::Ref().between(0, 499);
+			parts[i].temp = temp + (UFixed)(1750 + RNG::Ref().between(0, 499));
 			sim->pv[y/CELL][x/CELL] += 50;
 		}
 	}

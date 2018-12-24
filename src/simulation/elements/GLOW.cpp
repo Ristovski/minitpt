@@ -75,13 +75,13 @@ int Element_GLOW::update(UPDATE_FUNC_ARGS)
 int Element_GLOW::graphics(GRAPHICS_FUNC_ARGS)
 
 {
-	*firer = restrict_flt(cpart->temp-(275.13f+32.0f), 0, 128)/50.0f;
-	*fireg = restrict_flt(cpart->ctype, 0, 128)/50.0f;
-	*fireb = restrict_flt(cpart->tmp, 0, 128)/50.0f;
+	*firer = restrict_flt((float)cpart->temp-(275.13f+32.0f), 0.0f, 128.0f)/50.0f;
+	*fireg = restrict_flt((float)cpart->ctype, 0.0f, 128.0f)/50.0f;
+	*fireb = restrict_flt((float)cpart->tmp, 0.0f, 128.0f)/50.0f;
 
-	*colr = restrict_flt(64.0f+cpart->temp-(275.13f+32.0f), 0, 255);
-	*colg = restrict_flt(64.0f+cpart->ctype, 0, 255);
-	*colb = restrict_flt(64.0f+cpart->tmp, 0, 255);
+	*colr = restrict_flt(64.0f+(float)cpart->temp-(275.13f+32.0f), 0.0f, 255.0f);
+	*colg = restrict_flt(64.0f+cpart->ctype, 0.0f, 255.0f);
+	*colb = restrict_flt(64.0f+cpart->tmp, 0.0f, 255.0f);
 
 	*pixel_mode |= FIRE_ADD;
 	return 0;

@@ -64,7 +64,7 @@ int Element_H2::update(UPDATE_FUNC_ARGS)
 				}
 				if (sim->pv[y/CELL][x/CELL] > 45.0f)
 				{
-					if (parts[ID(r)].temp > 2273.15)
+					if (parts[ID(r)].temp > (UFixed)2273.15)
 						continue;
 				}
 				else
@@ -72,30 +72,30 @@ int Element_H2::update(UPDATE_FUNC_ARGS)
 					if (rt==PT_FIRE)
 					{
 						if(parts[ID(r)].tmp&0x02)
-							parts[ID(r)].temp=3473.0f;
+							parts[ID(r)].temp = 3473.0f;
 						else
-							parts[ID(r)].temp=2473.15f;
+							parts[ID(r)].temp = 2473.15f;
 						parts[ID(r)].tmp |= 1;
 						sim->create_part(i,x,y,PT_FIRE);
-						parts[i].temp += RNG::Ref().between(0, 99);
+						parts[i].temp += (UFixed)RNG::Ref().between(0, 99);
 						parts[i].tmp |= 1;
 						return 1;
 					}
 					else if ((rt==PT_PLSM && !(parts[ID(r)].tmp&4)) || (rt==PT_LAVA && parts[ID(r)].ctype != PT_BMTL))
 					{
 						sim->create_part(i,x,y,PT_FIRE);
-						parts[i].temp += RNG::Ref().between(0, 99);
+						parts[i].temp += (UFixed)RNG::Ref().between(0, 99);
 						parts[i].tmp |= 1;
 						return 1;
 					}
 				}
 			}
-	if (parts[i].temp > 2273.15 && sim->pv[y/CELL][x/CELL] > 50.0f)
+	if (parts[i].temp > (UFixed)2273.15 && sim->pv[y/CELL][x/CELL] > 50.0f)
 	{
 		if (RNG::Ref().chance(1, 5))
 		{
 			int j;
-			float temp = parts[i].temp;
+			UFixed temp = parts[i].temp;
 			sim->create_part(i,x,y,PT_NBLE);
 			parts[i].tmp = 0x1;
 
@@ -125,7 +125,7 @@ int Element_H2::update(UPDATE_FUNC_ARGS)
 					parts[j].tmp |= 4;
 				}
 			}
-			parts[i].temp = temp + RNG::Ref().between(750, 1249);
+			parts[i].temp = temp + (UFixed)RNG::Ref().between(750, 1249);
 			sim->pv[y/CELL][x/CELL] += 30;
 			return 1;
 		}
