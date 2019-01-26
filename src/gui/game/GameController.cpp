@@ -66,17 +66,6 @@ public:
 	}
 };
 
-class GameController::TagsCallback: public ControllerCallback
-{
-	GameController * cc;
-public:
-	TagsCallback(GameController * cc_) { cc = cc_; }
-	virtual void ControllerExit()
-	{
-		cc->gameView->NotifySaveChanged(cc->gameModel);
-	}
-};
-
 class GameController::StampsCallback: public ControllerCallback
 {
 	GameController * cc;
@@ -93,7 +82,6 @@ GameController::GameController():
 	renderOptions(NULL),
 	loginWindow(NULL),
 	console(NULL),
-	tagsWindow(NULL),
 	options(NULL),
 	debugFlags(0),
 	HasDone(false)
@@ -131,10 +119,6 @@ GameController::~GameController()
 	if(loginWindow)
 	{
 		delete loginWindow;
-	}
-	if(tagsWindow)
-	{
-		delete tagsWindow;
 	}
 	if(console)
 	{
@@ -1126,20 +1110,6 @@ void GameController::OpenColourPicker()
 		}
 	};
 	new ColourPickerActivity(gameModel->GetColourSelectorColour(), new ColourPickerCallback(this));
-}
-
-void GameController::OpenTags()
-{
-	if(gameModel->GetSave() && gameModel->GetSave()->GetID())
-	{
-		delete tagsWindow;
-		tagsWindow = new TagsController(new TagsCallback(this), gameModel->GetSave());
-		ui::Engine::Ref().ShowWindow(tagsWindow->GetView());
-	}
-	else
-	{
-		new ErrorMessage("Error", "No save open");
-	}
 }
 
 void GameController::OpenStamps()

@@ -8,7 +8,6 @@
 #include "gui/interface/Point.h"
 #include "gui/render/RenderController.h"
 #include "gui/login/LoginController.h"
-#include "gui/tags/TagsController.h"
 #include "gui/console/ConsoleController.h"
 #include "gui/options/OptionsController.h"
 #include "client/ClientListener.h"
@@ -34,7 +33,6 @@ private:
 	RenderController * renderOptions;
 	LoginController * loginWindow;
 	ConsoleController * console;
-	TagsController * tagsWindow;
 	OptionsController * options;
 	CommandInterface * commandInterface;
 	vector<DebugInfo*> debugInfo;
@@ -43,7 +41,6 @@ public:
 	bool HasDone;
 	class SearchCallback;
 	class SSaveCallback;
-	class TagsCallback;
 	class StampsCallback;
 	class OptionsCallback;
 	class SaveOpenCallback;
@@ -115,7 +112,6 @@ public:
 	void OpenSearch(String searchText);
 	void OpenLogin();
 	void OpenProfile();
-	void OpenTags();
 	void OpenSavePreview(int saveID, int saveDate, bool instant);
 	void OpenSavePreview();
 	void OpenLocalSaveWindow(bool asCurrent);
