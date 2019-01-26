@@ -21,8 +21,6 @@
 #include "gui/game/Tool.h"
 #include "LuaScriptHelper.h"
 #include "client/HTTP.h"
-#include "client/GameSave.h"
-#include "client/SaveFile.h"
 #include "Misc.h"
 #include "Platform.h"
 #include "PowderToy.h"

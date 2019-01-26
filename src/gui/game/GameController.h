@@ -6,13 +6,11 @@
 #include "GameModel.h"
 #include "simulation/Simulation.h"
 #include "gui/interface/Point.h"
-#include "gui/search/SearchController.h"
 #include "gui/render/RenderController.h"
 #include "gui/preview/PreviewController.h"
 #include "gui/login/LoginController.h"
 #include "gui/tags/TagsController.h"
 #include "gui/console/ConsoleController.h"
-#include "gui/localbrowser/LocalBrowserController.h"
 #include "gui/options/OptionsController.h"
 #include "client/ClientListener.h"
 #include "RenderPreset.h"
@@ -35,12 +33,10 @@ private:
 	PreviewController * activePreview;
 	GameView * gameView;
 	GameModel * gameModel;
-	SearchController * search;
 	RenderController * renderOptions;
 	LoginController * loginWindow;
 	ConsoleController * console;
 	TagsController * tagsWindow;
-	LocalBrowserController * localBrowser;
 	OptionsController * options;
 	CommandInterface * commandInterface;
 	vector<DebugInfo*> debugInfo;

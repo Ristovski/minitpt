@@ -31,9 +31,6 @@
 
 #include "Format.h"
 
-#include "client/GameSave.h"
-#include "client/SaveFile.h"
-#include "simulation/SaveRenderer.h"
 #include "client/Client.h"
 #include "Misc.h"
 
@@ -590,27 +587,6 @@ int main(int argc, char * argv[])
 		Client::Ref().SetPref("Scale", scale);
 	}
 
-	ByteString proxyString = "";
-	if(arguments["proxy"].length())
-	{
-		if(arguments["proxy"] == "false")
-		{
-			proxyString = "";
-			Client::Ref().SetPref("Proxy", "");
-		}
-		else
-		{
-			proxyString = (arguments["proxy"]);
-			Client::Ref().SetPref("Proxy", arguments["proxy"]);
-		}
-	}
-	else if(Client::Ref().GetPrefString("Proxy", "").length())
-	{
-		proxyString = (Client::Ref().GetPrefByteString("Proxy", ""));
-	}
-
-	Client::Ref().Initialise(proxyString);
-
 	// TODO: maybe bind the maximum allowed scale to screen size somehow
 	if(scale < 1 || scale > 10)
 		scale = 1;
@@ -673,90 +649,6 @@ int main(int argc, char * argv[])
 #ifndef FONTEDITOR
 		gameController = new GameController();
 		engine->ShowWindow(gameController->GetView());
-
-		if(arguments["open"].length())
-		{
-#ifdef DEBUG
-			std::cout << "Loading " << arguments["open"] << std::endl;
-#endif
-			if(Client::Ref().FileExists(arguments["open"]))
-			{
-				try
-				{
-					std::vector<unsigned char> gameSaveData = Client::Ref().ReadFile(arguments["open"]);
-					if(!gameSaveData.size())
-					{
-						new ErrorMessage("Error", "Could not read file");
-					}
-					else
-					{
-						SaveFile * newFile = new SaveFile(arguments["open"]);
-						GameSave * newSave = new GameSave(gameSaveData);
-						newFile->SetGameSave(newSave);
-						gameController->LoadSaveFile(newFile);
-						delete newFile;
-					}
-
-				}
-				catch(std::exception & e)
-				{
-					new ErrorMessage("Error", "Could not open save file:\n" + ByteString(e.what()).FromUtf8()) ;
-				}
-			}
-			else
-			{
-				new ErrorMessage("Error", "Could not open file");
-			}
-		}
-
-		if(arguments["ptsave"].length())
-		{
-			engine->g->fillrect((engine->GetWidth()/2)-101, (engine->GetHeight()/2)-26, 202, 52, 0, 0, 0, 210);
-			engine->g->drawrect((engine->GetWidth()/2)-100, (engine->GetHeight()/2)-25, 200, 50, 255, 255, 255, 180);
-			engine->g->drawtext((engine->GetWidth()/2)-(Graphics::textwidth("Loading save...")/2), (engine->GetHeight()/2)-5, "Loading save...", style::Colour::InformationTitle.Red, style::Colour::InformationTitle.Green, style::Colour::InformationTitle.Blue, 255);
-
-#ifdef OGLI
-			blit(sdl_window);
-#else
-			blit(engine->g->vid);
-#endif
-			ByteString ptsaveArg = arguments["ptsave"];
-			try
-			{
-				ByteString saveIdPart;
-				if (ByteString::Split split = arguments["ptsave"].SplitBy(':'))
-				{
-					if (split.Before() != "ptsave")
-						throw std::runtime_error("Not a ptsave link");
-					saveIdPart = split.After().SplitBy('#').Before();
-				}
-				else
-					throw std::runtime_error("Invalid save link");
-
-				if (!saveIdPart.size())
-					throw std::runtime_error("No Save ID");
-#ifdef DEBUG
-				std::cout << "Got Ptsave: id: " << saveIdPart << std::endl;
-#endif
-				int saveId = saveIdPart.ToNumber<int>();
-
-				SaveInfo * newSave = Client::Ref().GetSave(saveId, 0);
-				if (!newSave)
-					throw std::runtime_error("Could not load save info");
-				std::vector<unsigned char> saveData = Client::Ref().GetSaveData(saveId, 0);
-				if (!saveData.size())
-					throw std::runtime_error(("Could not load save\n" + Client::Ref().GetLastError()).ToUtf8());
-				GameSave * newGameSave = new GameSave(saveData);
-				newSave->SetGameSave(newGameSave);
-
-				gameController->LoadSave(newSave);
-				delete newSave;
-			}
-			catch (std::exception & e)
-			{
-				new ErrorMessage("Error", ByteString(e.what()).FromUtf8());
-			}
-		}
 
 #else // FONTEDITOR
 		if(argc <= 1)

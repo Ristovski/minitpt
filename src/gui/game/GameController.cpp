@@ -6,8 +6,6 @@
 #include "GameController.h"
 #include "GameModel.h"
 #include "client/SaveInfo.h"
-#include "client/GameSave.h"
-#include "gui/search/SearchController.h"
 #include "gui/render/RenderController.h"
 #include "gui/login/LoginController.h"
 #include "gui/interface/Point.h"
@@ -21,9 +19,6 @@
 #include "gui/colourpicker/ColourPickerActivity.h"
 #include "gui/update/UpdateActivity.h"
 #include "Notification.h"
-#include "gui/filebrowser/FileBrowserActivity.h"
-#include "gui/save/LocalSaveActivity.h"
-#include "gui/save/ServerSaveActivity.h"
 #include "gui/interface/Keys.h"
 #include "gui/interface/Mouse.h"
 #include "simulation/Snapshot.h"
@@ -48,19 +43,6 @@ public:
 	SearchCallback(GameController * cc_) { cc = cc_; }
 	virtual void ControllerExit()
 	{
-		if(cc->search->GetLoadedSave())
-		{
-			try
-			{
-				cc->HistorySnapshot();
-				cc->gameModel->SetSave(cc->search->GetLoadedSave());
-				cc->search->ReleaseLoadedSave();
-			}
-			catch(GameModelException & ex)
-			{
-				new ErrorMessage("Cannot open save", ByteString(ex.what()).FromUtf8());
-			}
-		}
 	}
 };
 
@@ -116,15 +98,6 @@ public:
 	StampsCallback(GameController * cc_) { cc = cc_; }
 	virtual void ControllerExit()
 	{
-		SaveFile *file = cc->localBrowser->GetSave();
-		if (file)
-		{
-			if (file->GetError().length())
-				new ErrorMessage("Error loading stamp", file->GetError());
-			else if (cc->localBrowser->GetMoveToFront())
-				Client::Ref().MoveStampToFront(file->GetName());
-			cc->LoadStamp(file->GetGameSave());
-		}
 	}
 };
 
@@ -132,12 +105,10 @@ GameController::GameController():
 	firstTick(true),
 	foundSignID(-1),
 	activePreview(NULL),
-	search(NULL),
 	renderOptions(NULL),
 	loginWindow(NULL),
 	console(NULL),
 	tagsWindow(NULL),
-	localBrowser(NULL),
 	options(NULL),
 	debugFlags(0),
 	HasDone(false)
@@ -168,10 +139,6 @@ GameController::GameController():
 
 GameController::~GameController()
 {
-	if(search)
-	{
-		delete search;
-	}
 	if(renderOptions)
 	{
 		delete renderOptions;
@@ -191,10 +158,6 @@ GameController::~GameController()
 	if(activePreview)
 	{
 		delete activePreview;
-	}
-	if(localBrowser)
-	{
-		delete localBrowser;
 	}
 	if (options)
 	{
@@ -326,20 +289,6 @@ String GameController::GetSignText(int signID)
 
 void GameController::PlaceSave(ui::Point position, bool includePressure)
 {
-	bool incPressure = Client::Ref().GetPrefBool("Simulation.LoadPressure", true);
-	if (!incPressure)
-		includePressure = !includePressure;
-
-	GameSave *placeSave = gameModel->GetPlaceSave();
-	if (placeSave)
-	{
-		HistorySnapshot();
-		if (!gameModel->GetSimulation()->Load(position.X, position.Y, placeSave, includePressure))
-		{
-			gameModel->SetPaused(placeSave->paused | gameModel->GetPaused());
-			Client::Ref().MergeStampAuthorInfo(placeSave->authors);
-		}
-	}
 }
 
 void GameController::Install()
@@ -527,37 +476,14 @@ void GameController::DrawPoints(int toolSelection, ui::Point oldPos, ui::Point n
 
 bool GameController::LoadClipboard()
 {
-	GameSave *clip = gameModel->GetClipboard();
-	if (!clip)
-		return false;
-	gameModel->SetPlaceSave(clip);
-	if (gameModel->GetPlaceSave() && gameModel->GetPlaceSave()->Collapsed())
-		gameModel->GetPlaceSave()->Expand();
-	return true;
-}
-
-void GameController::LoadStamp(GameSave *stamp)
-{
-	gameModel->SetPlaceSave(stamp);
-	if(gameModel->GetPlaceSave() && gameModel->GetPlaceSave()->Collapsed())
-		gameModel->GetPlaceSave()->Expand();
 }
 
 void GameController::TranslateSave(ui::Point point)
 {
-	vector2d translate = v2d_new(point.X, point.Y);
-	vector2d translated = gameModel->GetPlaceSave()->Translate(translate);
-	ui::Point currentPlaceSaveOffset = gameView->GetPlaceSaveOffset();
-	// resets placeSaveOffset to 0, which is why we back it up first
-	gameModel->SetPlaceSave(gameModel->GetPlaceSave());
-	gameView->SetPlaceSaveOffset(ui::Point(translated.x, translated.y) + currentPlaceSaveOffset);
 }
 
 void GameController::TransformSave(matrix2d transform)
 {
-	vector2d translate = v2d_zero;
-	gameModel->GetPlaceSave()->Transform(transform, translate);
-	gameModel->SetPlaceSave(gameModel->GetPlaceSave());
 }
 
 void GameController::ToolClick(int toolSelection, ui::Point point)
@@ -572,46 +498,10 @@ void GameController::ToolClick(int toolSelection, ui::Point point)
 
 ByteString GameController::StampRegion(ui::Point point1, ui::Point point2, bool includePressure)
 {
-	bool incPressure = Client::Ref().GetPrefBool("Simulation.IncludePressure", true);
-	if (!incPressure)
-		includePressure = !includePressure;
-
-	GameSave * newSave = gameModel->GetSimulation()->Save(point1.X, point1.Y, point2.X, point2.Y, includePressure);
-	if(newSave)
-	{
-		newSave->paused = gameModel->GetPaused();
-		ByteString stampName = Client::Ref().AddStamp(newSave);
-		delete newSave;
-		if (stampName.length() == 0)
-			new ErrorMessage("Could not create stamp", "Error serializing save file");
-		return stampName;
-	}
-	else
-	{
-		new ErrorMessage("Could not create stamp", "Error generating save file");
-		return "";
-	}
 }
 
 void GameController::CopyRegion(ui::Point point1, ui::Point point2, bool includePressure)
 {
-	bool incPressure = Client::Ref().GetPrefBool("Simulation.IncludePressure", true);
-	if (!incPressure)
-		includePressure = !includePressure;
-
-	GameSave * newSave = gameModel->GetSimulation()->Save(point1.X, point1.Y, point2.X, point2.Y, includePressure);
-	if(newSave)
-	{
-		Json::Value clipboardInfo;
-		clipboardInfo["type"] = "clipboard";
-		clipboardInfo["username"] = Client::Ref().GetAuthUser().Username;
-		clipboardInfo["date"] = (Json::Value::UInt64)time(NULL);
-		Client::Ref().SaveAuthorInfo(&clipboardInfo);
-		newSave->authors = clipboardInfo;
-
-		newSave->paused = gameModel->GetPaused();
-		gameModel->SetClipboard(newSave);
-	}
 }
 
 void GameController::CutRegion(ui::Point point1, ui::Point point2, bool includePressure)
@@ -1009,12 +899,6 @@ void GameController::Update()
 		renderOptions = NULL;
 	}
 
-	if(search && search->HasExited)
-	{
-		delete search;
-		search = NULL;
-	}
-
 	if(activePreview && activePreview->HasExited)
 	{
 		delete activePreview;
@@ -1025,12 +909,6 @@ void GameController::Update()
 	{
 		delete loginWindow;
 		loginWindow = NULL;
-	}
-
-	if(localBrowser && localBrowser->HasDone)
-	{
-		delete localBrowser;
-		localBrowser = NULL;
 	}
 }
 
@@ -1203,70 +1081,10 @@ void GameController::SetReplaceModeFlags(int flags)
 
 void GameController::OpenSearch(String searchText)
 {
-	if(!search)
-		search = new SearchController(new SearchCallback(this));
-	if (searchText.length())
-		search->DoSearch2(searchText);
-	ui::Engine::Ref().ShowWindow(search->GetView());
 }
 
 void GameController::OpenLocalSaveWindow(bool asCurrent)
 {
-	Simulation * sim = gameModel->GetSimulation();
-	GameSave * gameSave = sim->Save();
-	if(!gameSave)
-	{
-		new ErrorMessage("Error", "Unable to build save.");
-	}
-	else
-	{
-		gameSave->paused = gameModel->GetPaused();
-
-		SaveFile tempSave("");
-		if (gameModel->GetSaveFile())
-		{
-			tempSave.SetFileName(gameModel->GetSaveFile()->GetName());
-			tempSave.SetDisplayName(gameModel->GetSaveFile()->GetDisplayName());
-		}
-		tempSave.SetGameSave(gameSave);
-
-		if (!asCurrent || !gameModel->GetSaveFile())
-		{
-			class LocalSaveCallback: public FileSavedCallback
-			{
-				GameController * c;
-			public:
-				LocalSaveCallback(GameController * _c): c(_c) {}
-				virtual  ~LocalSaveCallback() {}
-				virtual void FileSaved(SaveFile* file)
-				{
-					c->gameModel->SetSaveFile(file);
-				}
-			};
-
-			new LocalSaveActivity(tempSave, new LocalSaveCallback(this));
-		}
-		else if (gameModel->GetSaveFile())
-		{
-			Json::Value localSaveInfo;
-			localSaveInfo["type"] = "localsave";
-			localSaveInfo["username"] = Client::Ref().GetAuthUser().Username;
-			localSaveInfo["title"] = gameModel->GetSaveFile()->GetName();
-			localSaveInfo["date"] = (Json::Value::UInt64)time(NULL);
-			Client::Ref().SaveAuthorInfo(&localSaveInfo);
-			gameSave->authors = localSaveInfo;
-
-			gameModel->SetSaveFile(&tempSave);
-			Client::Ref().MakeDirectory(LOCAL_SAVE_DIR);
-			std::vector<char> saveData = gameSave->Serialise();
-			if (saveData.size() == 0)
-				new ErrorMessage("Error", "Unable to serialize game data.");
-			else if (Client::Ref().WriteFile(saveData, gameModel->GetSaveFile()->GetName()))
-				new ErrorMessage("Error", "Unable to write save file.");
-			else
-				gameModel->SetInfoTip("Saved Successfully");
-		}
-	}
 }
 
 void GameController::LoadSaveFile(SaveFile * file)
@@ -1297,20 +1115,6 @@ void GameController::OpenSavePreview()
 
 void GameController::OpenLocalBrowse()
 {
-	class LocalSaveOpenCallback: public FileSelectedCallback
-	{
-		GameController * c;
-	public:
-		LocalSaveOpenCallback(GameController * _c): c(_c) {}
-		virtual  ~LocalSaveOpenCallback() {};
-		virtual void FileSelected(SaveFile* file)
-		{
-			c->HistorySnapshot();
-			c->LoadSaveFile(file);
-			delete file;
-		}
-	};
-	new FileBrowserActivity(LOCAL_SAVE_DIR PATH_SEP, new LocalSaveOpenCallback(this));
 }
 
 void GameController::OpenLogin()
@@ -1381,8 +1185,6 @@ void GameController::OpenTags()
 
 void GameController::OpenStamps()
 {
-	localBrowser = new LocalBrowserController(new StampsCallback(this));
-	ui::Engine::Ref().ShowWindow(localBrowser->GetView());
 }
 
 void GameController::OpenOptions()
@@ -1415,100 +1217,10 @@ void GameController::OpenRenderOptions()
 
 void GameController::OpenSaveWindow()
 {
-	class SaveUploadedCallback: public ServerSaveActivity::SaveUploadedCallback
-	{
-		GameController * c;
-	public:
-		SaveUploadedCallback(GameController * _c): c(_c) {}
-		virtual  ~SaveUploadedCallback() {}
-		virtual void SaveUploaded(SaveInfo save)
-		{
-			save.SetVote(1);
-			save.SetVotesUp(1);
-			c->LoadSave(&save);
-		}
-	};
-	if(gameModel->GetUser().UserID)
-	{
-		Simulation * sim = gameModel->GetSimulation();
-		GameSave * gameSave = sim->Save();
-		if(!gameSave)
-		{
-			new ErrorMessage("Error", "Unable to build save.");
-		}
-		else
-		{
-			gameSave->paused = gameModel->GetPaused();
-
-			if(gameModel->GetSave())
-			{
-				SaveInfo tempSave(*gameModel->GetSave());
-				tempSave.SetGameSave(gameSave);
-				new ServerSaveActivity(tempSave, new SaveUploadedCallback(this));
-			}
-			else
-			{
-				SaveInfo tempSave(0, 0, 0, 0, 0, gameModel->GetUser().Username, "");
-				tempSave.SetGameSave(gameSave);
-				new ServerSaveActivity(tempSave, new SaveUploadedCallback(this));
-			}
-		}
-	}
-	else
-	{
-		new ErrorMessage("Error", "You need to login to upload saves.");
-	}
 }
 
 void GameController::SaveAsCurrent()
 {
-
-	class SaveUploadedCallback: public ServerSaveActivity::SaveUploadedCallback
-	{
-		GameController * c;
-	public:
-		SaveUploadedCallback(GameController * _c): c(_c) {}
-		virtual  ~SaveUploadedCallback() {}
-		virtual void SaveUploaded(SaveInfo save)
-		{
-			c->LoadSave(&save);
-		}
-	};
-
-	if(gameModel->GetSave() && gameModel->GetUser().UserID && gameModel->GetUser().Username == gameModel->GetSave()->GetUserName())
-	{
-		Simulation * sim = gameModel->GetSimulation();
-		GameSave * gameSave = sim->Save();
-		if(!gameSave)
-		{
-			new ErrorMessage("Error", "Unable to build save.");
-		}
-		else
-		{
-			gameSave->paused = gameModel->GetPaused();
-
-			if(gameModel->GetSave())
-			{
-				SaveInfo tempSave(*gameModel->GetSave());
-				tempSave.SetGameSave(gameSave);
-				new ServerSaveActivity(tempSave, true, new SaveUploadedCallback(this));
-			}
-			else
-			{
-				SaveInfo tempSave(0, 0, 0, 0, 0, gameModel->GetUser().Username, "");
-				tempSave.SetGameSave(gameSave);
-				new ServerSaveActivity(tempSave, true, new SaveUploadedCallback(this));
-			}
-		}
-	}
-	else if(gameModel->GetUser().UserID)
-	{
-		OpenSaveWindow();
-	}
-	else
-	{
-		new ErrorMessage("Error", "You need to login to upload saves.");
-	}
 }
 
 void GameController::FrameStep()
@@ -1546,12 +1258,12 @@ void GameController::ClearSim()
 
 void GameController::ReloadSim()
 {
-	if(gameModel->GetSave() && gameModel->GetSave()->GetGameSave())
+	if(gameModel->GetSave())
 	{
 		HistorySnapshot();
 		gameModel->SetSave(gameModel->GetSave());
 	}
-	else if(gameModel->GetSaveFile() && gameModel->GetSaveFile()->GetGameSave())
+	else if(gameModel->GetSaveFile())
 	{
 		HistorySnapshot();
 		gameModel->SetSaveFile(gameModel->GetSaveFile());

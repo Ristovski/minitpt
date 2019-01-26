@@ -2,7 +2,6 @@
 #include "PreviewModel.h"
 #include "Format.h"
 #include "client/Client.h"
-#include "client/GameSave.h"
 #include "common/tpt-minmax.h"
 #include "gui/dialogues/ErrorMessage.h"
 #include "PreviewModelException.h"
@@ -161,24 +160,6 @@ void PreviewModel::CommentAdded()
 
 void PreviewModel::OnSaveReady()
 {
-	commentsTotal = saveInfo->Comments;
-	try
-	{
-		GameSave *gameSave = new GameSave(*saveData);
-		if (gameSave->fromNewerVersion)
-			new ErrorMessage("This save is from a newer version", "Please update TPT in game or at http://powdertoy.co.uk");
-		saveInfo->SetGameSave(gameSave);
-	}
-	catch(ParseException &e)
-	{
-		new ErrorMessage("Error", ByteString(e.what()).FromUtf8());
-		canOpen = false;
-	}
-	notifySaveChanged();
-	notifyCommentsPageChanged();
-	//make sure author name comments are red
-	if (commentsLoaded)
-		notifySaveCommentsChanged();
 }
 
 void PreviewModel::ClearComments()

@@ -8,7 +8,6 @@
 #include "IntroText.h"
 #include "QuickOptions.h"
 #include "DecorationTool.h"
-#include "client/SaveFile.h"
 #include "graphics/Graphics.h"
 #include "gui/Style.h"
 #include "gui/dialogues/ConfirmPrompt.h"
@@ -1001,24 +1000,6 @@ void GameView::NotifySaveChanged(GameModel * sender)
 		if (saveID == 404 || saveID == 2157797)
 			saveReuploadAllowed = false;
 	}
-	else if (sender->GetSaveFile())
-	{
-		if (ctrlBehaviour)
-			((SplitButton*)saveSimulationButton)->SetShowSplit(true);
-		else
-			((SplitButton*)saveSimulationButton)->SetShowSplit(false);
-		saveSimulationButton->SetText(sender->GetSaveFile()->GetDisplayName());
-		reloadButton->Enabled = true;
-		upVoteButton->Enabled = false;
-		upVoteButton->Appearance.BackgroundDisabled = (ui::Colour(0, 0, 0));
-		upVoteButton->Appearance.BorderDisabled = ui::Colour(100, 100, 100);
-		downVoteButton->Enabled = false;
-		downVoteButton->Appearance.BackgroundDisabled = (ui::Colour(0, 0, 0));
-		downVoteButton->Appearance.BorderDisabled = ui::Colour(100, 100, 100);
-		tagSimulationButton->Enabled = false;
-		tagSimulationButton->SetText("[no tags set]");
-		currentSaveType = 2;
-	}
 	else
 	{
 		((SplitButton*)saveSimulationButton)->SetShowSplit(false);
@@ -1614,11 +1595,6 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 		std::vector<ByteString> stampList = Client::Ref().GetStamps(0, 1);
 		if (stampList.size())
 		{
-			SaveFile *saveFile = Client::Ref().GetStamp(stampList[0]);
-			c->LoadStamp(saveFile->GetGameSave());
-			delete saveFile;
-			selectPoint1 = selectPoint2 = mousePosition;
-			isMouseDown = false;
 			break;
 		}
 	}

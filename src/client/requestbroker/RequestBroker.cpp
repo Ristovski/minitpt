@@ -8,7 +8,6 @@
 #include "ImageRequest.h"
 #include "Platform.h"
 #include "client/Client.h"
-#include "client/GameSave.h"
 #include "graphics/Graphics.h"
 
 //Asynchronous Thumbnail render & request processing
@@ -75,24 +74,6 @@ void RequestBroker::Shutdown()
 		delete (*req);
 		req++;
 	}
-}
-
-void RequestBroker::RenderThumbnail(GameSave * gameSave, int width, int height, RequestListener * tListener)
-{
-	RenderThumbnail(gameSave, true, true, width, height, tListener);
-}
-
-void RequestBroker::RenderThumbnail(GameSave * gameSave, bool decorations, bool fire, int width, int height, RequestListener * tListener)
-{
-	ListenerHandle handle = AttachRequestListener(tListener);
-
-	ThumbRenderRequest * r = new ThumbRenderRequest(new GameSave(*gameSave), decorations, fire, width, height, handle);
-
-	pthread_mutex_lock(&requestQueueMutex);
-	requestQueue.push_back(r);
-	pthread_mutex_unlock(&requestQueueMutex);
-
-	assureRunning();
 }
 
 void RequestBroker::RetrieveThumbnail(int saveID, int saveDate, int width, int height, RequestListener * tListener)

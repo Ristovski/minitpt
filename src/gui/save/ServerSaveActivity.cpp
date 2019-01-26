@@ -12,7 +12,6 @@
 #include "client/Client.h"
 #include "tasks/Task.h"
 #include "gui/Style.h"
-#include "client/GameSave.h"
 #include "images.h"
 
 class ServerSaveActivity::CancelAction: public ui::ButtonAction
@@ -149,10 +148,6 @@ ServerSaveActivity::ServerSaveActivity(SaveInfo save, ServerSaveActivity::SaveUp
 	}
 	AddComponent(publishedCheckbox);
 
-	pausedCheckbox = new ui::Checkbox(ui::Point(160, 45), ui::Point(55, 16), "Paused", "");
-	pausedCheckbox->SetChecked(save.GetGameSave()->paused);
-	AddComponent(pausedCheckbox);
-
 	ui::Button * cancelButton = new ui::Button(ui::Point(0, Size.Y-16), ui::Point((Size.X/2)-75, 16), "Cancel");
 	cancelButton->Appearance.HorizontalAlign = ui::Appearance::AlignLeft;
 	cancelButton->Appearance.VerticalAlign = ui::Appearance::AlignMiddle;
@@ -182,9 +177,6 @@ ServerSaveActivity::ServerSaveActivity(SaveInfo save, ServerSaveActivity::SaveUp
 	RulesButton->Appearance.TextInactive = style::Colour::InformationTitle;
 	RulesButton->SetActionCallback(new RulesAction(this));
 	AddComponent(RulesButton);
-
-	if(save.GetGameSave())
-		RequestBroker::Ref().RenderThumbnail(save.GetGameSave(), false, true, (Size.X/2)-16, -1, this);
 }
 
 ServerSaveActivity::ServerSaveActivity(SaveInfo save, bool saveNow, ServerSaveActivity::SaveUploadedCallback * callback) :
@@ -260,37 +252,10 @@ void ServerSaveActivity::Save()
 
 void ServerSaveActivity::AddAuthorInfo()
 {
-	Json::Value serverSaveInfo;
-	serverSaveInfo["type"] = "save";
-	serverSaveInfo["id"] = save.GetID();
-	serverSaveInfo["username"] = Client::Ref().GetAuthUser().Username;
-	serverSaveInfo["title"] = save.GetName().ToUtf8();
-	serverSaveInfo["description"] = save.GetDescription().ToUtf8();
-	serverSaveInfo["published"] = (int)save.GetPublished();
-	serverSaveInfo["date"] = (Json::Value::UInt64)time(NULL);
-	Client::Ref().SaveAuthorInfo(&serverSaveInfo);
-	save.GetGameSave()->authors = serverSaveInfo;
 }
 
 void ServerSaveActivity::saveUpload()
 {
-	save.SetName(nameField->GetText());
-	save.SetDescription(descriptionField->GetText());
-	save.SetPublished(publishedCheckbox->GetChecked());
-	save.SetUserName(Client::Ref().GetAuthUser().Username);
-	save.SetID(0);
-	save.GetGameSave()->paused = pausedCheckbox->GetChecked();
-	AddAuthorInfo();
-
-	if(Client::Ref().UploadSave(save) != RequestOkay)
-	{
-		new ErrorMessage("Error", "Upload failed with error:\n"+Client::Ref().GetLastError());
-	}
-	else if(callback)
-	{
-		new SaveIDMessage(save.GetID());
-		callback->SaveUploaded(save);
-	}
 }
 
 void ServerSaveActivity::Exit()

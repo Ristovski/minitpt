@@ -1,5 +1,4 @@
 #include "SaveInfo.h"
-#include "GameSave.h"
 #include "Client.h"
 
 SaveInfo::SaveInfo(SaveInfo & save):
@@ -16,14 +15,11 @@ SaveInfo::SaveInfo(SaveInfo & save):
 	userName(save.userName),
 	name(save.name),
 	Description(save.Description),
-	Published(save.Published),
-	gameSave(NULL)
+	Published(save.Published)
 {
 	std::list<ByteString> tagsSorted = save.tags;
 	tagsSorted.sort();
 	tags = tagsSorted;
-	if (save.gameSave)
-		gameSave = new GameSave(*save.gameSave);
 }
 
 SaveInfo::SaveInfo(int _id, int _createdDate, int _updatedDate, int _votesUp, int _votesDown, ByteString _userName, String _name):
@@ -41,8 +37,7 @@ SaveInfo::SaveInfo(int _id, int _createdDate, int _updatedDate, int _votesUp, in
 	name(_name),
 	Description(""),
 	Published(false),
-	tags(),
-	gameSave(NULL)
+	tags()
 {
 
 }
@@ -62,8 +57,7 @@ SaveInfo::SaveInfo(int _id, int _createdDate, int _updatedDate, int _votesUp, in
 	name(_name),
 	Description(description_),
 	Published(published_),
-	tags(),
-	gameSave(NULL)
+	tags()
 {
 	std::list<ByteString> tagsSorted = tags_;
 	tagsSorted.sort();
@@ -72,10 +66,6 @@ SaveInfo::SaveInfo(int _id, int _createdDate, int _updatedDate, int _votesUp, in
 
 SaveInfo::~SaveInfo()
 {
-	if(gameSave)
-	{
-		delete gameSave;
-	}
 }
 
 void SaveInfo::SetName(String name)
@@ -170,15 +160,4 @@ void SaveInfo::SetTags(std::list<ByteString> tags)
 std::list<ByteString> SaveInfo::GetTags()
 {
 	return tags;
-}
-
-GameSave * SaveInfo::GetGameSave()
-{
-	return gameSave;
-}
-
-void SaveInfo::SetGameSave(GameSave * saveGame)
-{
-	delete gameSave;
-	gameSave = saveGame;
 }

@@ -39,8 +39,6 @@
 #include "simulation/SaveRenderer.h"
 #include "gui/interface/Point.h"
 #include "client/SaveInfo.h"
-#include "client/SaveFile.h"
-#include "client/GameSave.h"
 #include "client/UserInfo.h"
 #include "gui/preview/Comment.h"
 #include "ClientListener.h"
@@ -963,114 +961,14 @@ User Client::GetAuthUser()
 
 RequestStatus Client::UploadSave(SaveInfo & save)
 {
-	lastError = "";
-	unsigned int gameDataLength;
-	char * gameData = NULL;
-	int dataStatus;
-	char * data;
-	int dataLength = 0;
-	ByteString userID = ByteString::Build(authUser.UserID);
-	if (authUser.UserID)
-	{
-		if (!save.GetGameSave())
-		{
-			lastError = "Empty game save";
-			return RequestFailure;
-		}
-
-		save.SetID(0);
-
-		gameData = save.GetGameSave()->Serialise(gameDataLength);
-
-		if (!gameData)
-		{
-			lastError = "Cannot serialize game save";
-			return RequestFailure;
-		}
-#if defined(SNAPSHOT) || defined(BETA) || defined(DEBUG)
-		else if (save.gameSave->fromNewerVersion)
-		{
-			lastError = "Cannot upload save, incompatible with latest release version";
-			return RequestFailure;
-		}
-#endif
-
-		char *saveName = new char[save.GetName().length() + 1];
-		std::strcpy (saveName, save.GetName().ToUtf8().c_str());
-		char *saveDescription = new char[save.GetDescription().length() + 1];
-		std::strcpy (saveDescription, save.GetDescription().ToUtf8().c_str());
-		char *userid = new char[userID.size() + 1];
-		std::strcpy (userid, userID.c_str());
-		char *session = new char[authUser.SessionID.length() + 1];
-		std::strcpy (session, authUser.SessionID.c_str());
-
-		const char *const postNames[] = { "Name", "Description", "Data:save.bin", "Publish", NULL };
-		const char *const postDatas[] = { saveName, saveDescription, gameData, save.GetPublished()?"Public":"Private" };
-		size_t postLengths[] = { save.GetName().length(), save.GetDescription().length(), gameDataLength, (size_t)(save.GetPublished()?6:7) };
-		data = http_multipart_post("http://" SERVER "/Save.api", postNames, postDatas, postLengths, userid, NULL, session, &dataStatus, &dataLength);
-
-		delete[] saveDescription;
-		delete[] saveName;
-		delete[] userid;
-		delete[] session;
-	}
-	else
-	{
-		lastError = "Not authenticated";
-		return RequestFailure;
-	}
-
-	RequestStatus ret = ParseServerReturn(data, dataStatus, false);
-	if (ret == RequestOkay)
-	{
-		int saveID = ByteString(data+3).ToNumber<int>();
-		if (!saveID)
-		{
-			lastError = "Server did not return Save ID";
-			ret = RequestFailure;
-		}
-		else
-			save.SetID(saveID);
-	}
-	free(data);
-	delete[] gameData;
-	return ret;
 }
 
 void Client::MoveStampToFront(ByteString stampID)
 {
-	for (std::list<ByteString>::iterator iterator = stampIDs.begin(), end = stampIDs.end(); iterator != end; ++iterator)
-	{
-		if((*iterator) == stampID)
-		{
-			stampIDs.erase(iterator);
-			break;
-		}
-	}
-	stampIDs.push_front(stampID);
-	updateStamps();
 }
 
 SaveFile * Client::GetStamp(ByteString stampID)
 {
-	ByteString stampFile = ByteString(STAMPS_DIR PATH_SEP + stampID + ".stm");
-	SaveFile * file = new SaveFile(stampID);
-	if (!FileExists(stampFile))
-		stampFile = stampID;
-	if (FileExists(stampFile))
-	{
-		try
-		{
-			GameSave * tempSave = new GameSave(ReadFile(stampFile));
-			file->SetGameSave(tempSave);
-		}
-		catch (ParseException & e)
-		{
-			std::cerr << "Client: Invalid stamp file, " << stampID << " " << e.what() << std::endl;
-			file->SetLoadingError(ByteString(e.what()).FromUtf8());
-		}
-	}
-	return file;
 }
 
 void Client::DeleteStamp(ByteString stampID)
@@ -1089,195 +987,36 @@ void Client::DeleteStamp(ByteString stampID)
 	updateStamps();
 }
 
-ByteString Client::AddStamp(GameSave * saveData)
-{
-	unsigned t=(unsigned)time(NULL);
-	if (lastStampTime!=t)
-	{
-		lastStampTime=t;
-		lastStampName=0;
-	}
-	else
-		lastStampName++;
-	ByteString saveID = ByteString::Build(Format::Hex(Format::Width(lastStampTime, 8)), Format::Hex(Format::Width(lastStampName, 2)));
-	ByteString filename = STAMPS_DIR PATH_SEP + saveID + ".stm";
-
-	MakeDirectory(STAMPS_DIR);
-
-	Json::Value stampInfo;
-	stampInfo["type"] = "stamp";
-	stampInfo["username"] = authUser.Username;
-	stampInfo["name"] = filename;
-	stampInfo["date"] = (Json::Value::UInt64)time(NULL);
-	if (authors.size() != 0)
-	{
-		// This is a stamp, always append full authorship info (even if same user)
-		stampInfo["links"].append(Client::Ref().authors);
-	}
-	saveData->authors = stampInfo;
-
-	unsigned int gameDataLength;
-	char * gameData = saveData->Serialise(gameDataLength);
-	if (gameData == NULL)
-		return "";
-
-	std::ofstream stampStream;
-	stampStream.open(filename.c_str(), std::ios::binary);
-	stampStream.write((const char *)gameData, gameDataLength);
-	stampStream.close();
-
-	delete[] gameData;
-
-	stampIDs.push_front(saveID);
-
-	updateStamps();
-
-	return saveID;
-}
-
 void Client::updateStamps()
 {
-	MakeDirectory(STAMPS_DIR);
-
-	std::ofstream stampsStream;
-	stampsStream.open(ByteString(STAMPS_DIR PATH_SEP "stamps.def").c_str(), std::ios::binary);
-	for (std::list<ByteString>::const_iterator iterator = stampIDs.begin(), end = stampIDs.end(); iterator != end; ++iterator)
-	{
-		stampsStream.write((*iterator).c_str(), 10);
-	}
-	stampsStream.write("\0", 1);
-	stampsStream.close();
-	return;
 }
 
 void Client::RescanStamps()
 {
-	DIR * directory;
-	struct dirent * entry;
-	directory = opendir("stamps");
-	if (directory != NULL)
-	{
-		stampIDs.clear();
-		while ((entry = readdir(directory)))
-		{
-			ByteString name = entry->d_name;
-			if(name != ".." && name != "." && name.EndsWith(".stm") && name.size() == 14)
-				stampIDs.push_front(name.Substr(0, 10));
-		}
-		closedir(directory);
-		updateStamps();
-	}
 }
 
 int Client::GetStampsCount()
 {
-	return stampIDs.size();
 }
 
 std::vector<ByteString> Client::GetStamps(int start, int count)
 {
-	int size = (int)stampIDs.size();
-	if (start+count > size)
-	{
-		if(start > size)
-			return std::vector<ByteString>();
-		count = size-start;
-	}
-
-	std::vector<ByteString> stampRange;
-	int index = 0;
-	for (std::list<ByteString>::const_iterator iterator = stampIDs.begin(), end = stampIDs.end(); iterator != end; ++iterator, ++index)
-	{
-		if(index>=start && index < start+count)
-			stampRange.push_back(*iterator);
-	}
-	return stampRange;
 }
 
 RequestStatus Client::ExecVote(int saveID, int direction)
 {
-	lastError = "";
-	int dataStatus;
-	char * data;
-	int dataLength = 0;
-
-	if (authUser.UserID)
-	{
-		char * directionText = (char*)(direction==1?"Up":"Down");
-		ByteString saveIDText = ByteString::Build(saveID);
-		ByteString userIDText = ByteString::Build(authUser.UserID);
-
-		char *id = new char[saveIDText.length() + 1];
-		std::strcpy(id, saveIDText.c_str());
-		char *userid = new char[userIDText.length() + 1];
-		std::strcpy(userid, userIDText.c_str());
-		char *session = new char[authUser.SessionID.length() + 1];
-		std::strcpy(session, authUser.SessionID.c_str());
-
-		const char *const postNames[] = { "ID", "Action", NULL };
-		const char *const postDatas[] = { id, directionText };
-		size_t postLengths[] = { saveIDText.length(), strlen(directionText) };
-		data = http_multipart_post("http://" SERVER "/Vote.api", postNames, postDatas, postLengths, userid, NULL, session, &dataStatus, &dataLength);
-
-		delete[] id;
-		delete[] userid;
-		delete[] session;
-	}
-	else
-	{
-		lastError = "Not authenticated";
-		return RequestFailure;
-	}
-	RequestStatus ret = ParseServerReturn(data, dataStatus, false);
-	return ret;
 }
 
 unsigned char * Client::GetSaveData(int saveID, int saveDate, int & dataLength)
 {
-	lastError = "";
-	int dataStatus;
-	char *data;
-	dataLength = 0;
-	ByteString urlStr;
-	if (saveDate)
-		urlStr = ByteString::Build("http://", STATICSERVER, "/", saveID, "_", saveDate, ".cps");
-	else
-		urlStr = ByteString::Build("http://", STATICSERVER, "/", saveID, ".cps");
-
-	char *url = new char[urlStr.size() + 1];
-	std::strcpy(url, urlStr.c_str());
-	data = http_simple_get(url, &dataStatus, &dataLength);
-	delete[] url;
-
-	// will always return failure
-	ParseServerReturn(data, dataStatus, false);
-	if (data && dataStatus == 200)
-		return (unsigned char *)data;
-	free(data);
-	return NULL;
 }
 
 std::vector<unsigned char> Client::GetSaveData(int saveID, int saveDate)
 {
-	int dataSize;
-	unsigned char * data = GetSaveData(saveID, saveDate, dataSize);
-	if (!data)
-		return std::vector<unsigned char>();
-
-	std::vector<unsigned char> saveData(data, data+dataSize);
-	delete[] data;
-	return saveData;
 }
 
 RequestBroker::Request * Client::GetSaveDataAsync(int saveID, int saveDate)
 {
-	ByteString url;
-	if(saveDate){
-		url = ByteString::Build("http://", STATICSERVER, "/", saveID, "_", saveDate, ".cps");
-	} else {
-		url = ByteString::Build("http://", STATICSERVER, "/", saveID, ".cps");
-	}
-	return new WebRequest(url);
 }
 
 RequestBroker::Request * Client::SaveUserInfoAsync(UserInfo info)

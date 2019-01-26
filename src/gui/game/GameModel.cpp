@@ -11,8 +11,6 @@
 #include "Favorite.h"
 
 #include "client/Client.h"
-#include "client/GameSave.h"
-#include "client/SaveFile.h"
 #include "common/tpt-minmax.h"
 #include "graphics/Renderer.h"
 #include "simulation/Air.h"
@@ -621,58 +619,6 @@ SaveInfo * GameModel::GetSave()
 
 void GameModel::SetSave(SaveInfo * newSave)
 {
-	if(currentSave != newSave)
-	{
-		delete currentSave;
-		if(newSave == NULL)
-			currentSave = NULL;
-		else
-			currentSave = new SaveInfo(*newSave);
-	}
-	delete currentFile;
-	currentFile = NULL;
-
-	if(currentSave && currentSave->GetGameSave())
-	{
-		GameSave * saveData = currentSave->GetGameSave();
-		SetPaused(saveData->paused | GetPaused());
-		sim->gravityMode = saveData->gravityMode;
-		sim->air->airMode = saveData->airMode;
-		sim->edgeMode = saveData->edgeMode;
-		sim->legacy_enable = saveData->legacyEnable;
-		sim->water_equal_test = saveData->waterEEnabled;
-		sim->aheat_enable = saveData->aheatEnable;
-		if(saveData->gravityEnable)
-			sim->grav->start_grav_async();
-		else
-			sim->grav->stop_grav_async();
-		sim->clear_sim();
-		ren->ClearAccumulation();
-		if (!sim->Load(saveData))
-		{
-			// This save was created before logging existed
-			// Add in the correct info
-			if (saveData->authors.size() == 0)
-			{
-				saveData->authors["type"] = "save";
-				saveData->authors["id"] = newSave->id;
-				saveData->authors["username"] = newSave->userName;
-				saveData->authors["title"] = newSave->name.ToUtf8();
-				saveData->authors["description"] = newSave->Description.ToUtf8();
-				saveData->authors["published"] = (int)newSave->Published;
-				saveData->authors["date"] = newSave->updatedDate;
-			}
-			// This save was probably just created, and we didn't know the ID when creating it
-			// Update with the proper ID
-			else if (saveData->authors.get("id", -1) == 0 || saveData->authors.get("id", -1) == -1)
-			{
-				saveData->authors["id"] = newSave->id;
-			}
-			Client::Ref().OverwriteAuthorInfo(saveData->authors);
-		}
-	}
-	notifySaveChanged();
-	UpdateQuickOptions();
 }
 
 SaveFile * GameModel::GetSaveFile()
@@ -682,45 +628,6 @@ SaveFile * GameModel::GetSaveFile()
 
 void GameModel::SetSaveFile(SaveFile * newSave)
 {
-	if(currentFile != newSave)
-	{
-		delete currentFile;
-		if(newSave == NULL)
-			currentFile = NULL;
-		else
-			currentFile = new SaveFile(*newSave);
-	}
-	delete currentSave;
-	currentSave = NULL;
-
-	if(newSave && newSave->GetGameSave())
-	{
-		GameSave * saveData = newSave->GetGameSave();
-		SetPaused(saveData->paused | GetPaused());
-		sim->gravityMode = saveData->gravityMode;
-		sim->air->airMode = saveData->airMode;
-		sim->edgeMode = saveData->edgeMode;
-		sim->legacy_enable = saveData->legacyEnable;
-		sim->water_equal_test = saveData->waterEEnabled;
-		sim->aheat_enable = saveData->aheatEnable;
-		if(saveData->gravityEnable && !sim->grav->ngrav_enable)
-		{
-			sim->grav->start_grav_async();
-		}
-		else if(!saveData->gravityEnable && sim->grav->ngrav_enable)
-		{
-			sim->grav->stop_grav_async();
-		}
-		sim->clear_sim();
-		ren->ClearAccumulation();
-		if (!sim->Load(saveData))
-		{
-			Client::Ref().OverwriteAuthorInfo(saveData->authors);
-		}
-	}
-
-	notifySaveChanged();
-	UpdateQuickOptions();
 }
 
 Simulation * GameModel::GetSimulation()
@@ -1016,35 +923,6 @@ void GameModel::ClearSimulation()
 
 	notifySaveChanged();
 	UpdateQuickOptions();
-}
-
-void GameModel::SetPlaceSave(GameSave * save)
-{
-	if (save != placeSave)
-	{
-		delete placeSave;
-		if (save)
-			placeSave = new GameSave(*save);
-		else
-			placeSave = NULL;
-	}
-	notifyPlaceSaveChanged();
-}
-
-void GameModel::SetClipboard(GameSave * save)
-{
-	delete clipboard;
-	clipboard = save;
-}
-
-GameSave * GameModel::GetClipboard()
-{
-	return clipboard;
-}
-
-GameSave * GameModel::GetPlaceSave()
-{
-	return placeSave;
 }
 
 void GameModel::Log(String message, bool printToFile)
