@@ -7,7 +7,6 @@
 #include "GameModel.h"
 #include "client/SaveInfo.h"
 #include "gui/render/RenderController.h"
-#include "gui/login/LoginController.h"
 #include "gui/interface/Point.h"
 #include "gui/dialogues/ErrorMessage.h"
 #include "gui/dialogues/InformationMessage.h"
@@ -80,7 +79,6 @@ GameController::GameController():
 	firstTick(true),
 	foundSignID(-1),
 	renderOptions(NULL),
-	loginWindow(NULL),
 	console(NULL),
 	options(NULL),
 	debugFlags(0),
@@ -115,10 +113,6 @@ GameController::~GameController()
 	if(renderOptions)
 	{
 		delete renderOptions;
-	}
-	if(loginWindow)
-	{
-		delete loginWindow;
 	}
 	if(console)
 	{
@@ -863,12 +857,6 @@ void GameController::Update()
 		delete renderOptions;
 		renderOptions = NULL;
 	}
-
-	if(loginWindow && loginWindow->HasExited)
-	{
-		delete loginWindow;
-		loginWindow = NULL;
-	}
 }
 
 void GameController::SetZoomEnabled(bool zoomEnabled)
@@ -1046,12 +1034,6 @@ void GameController::OpenLocalSaveWindow(bool asCurrent)
 {
 }
 
-void GameController::LoadSaveFile(SaveFile * file)
-{
-	gameModel->SetSaveFile(file);
-}
-
-
 void GameController::LoadSave(SaveInfo * save)
 {
 	gameModel->SetSave(save);
@@ -1067,12 +1049,6 @@ void GameController::OpenSavePreview()
 
 void GameController::OpenLocalBrowse()
 {
-}
-
-void GameController::OpenLogin()
-{
-	loginWindow = new LoginController();
-	ui::Engine::Ref().ShowWindow(loginWindow->GetView());
 }
 
 void GameController::OpenProfile()
@@ -1191,11 +1167,6 @@ void GameController::ReloadSim()
 	{
 		HistorySnapshot();
 		gameModel->SetSave(gameModel->GetSave());
-	}
-	else if(gameModel->GetSaveFile())
-	{
-		HistorySnapshot();
-		gameModel->SetSaveFile(gameModel->GetSaveFile());
 	}
 }
 

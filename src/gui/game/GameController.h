@@ -7,7 +7,6 @@
 #include "simulation/Simulation.h"
 #include "gui/interface/Point.h"
 #include "gui/render/RenderController.h"
-#include "gui/login/LoginController.h"
 #include "gui/console/ConsoleController.h"
 #include "gui/options/OptionsController.h"
 #include "client/ClientListener.h"
@@ -31,7 +30,6 @@ private:
 	GameView * gameView;
 	GameModel * gameModel;
 	RenderController * renderOptions;
-	LoginController * loginWindow;
 	ConsoleController * console;
 	OptionsController * options;
 	CommandInterface * commandInterface;
@@ -107,10 +105,8 @@ public:
 	void SetActiveColourPreset(int preset);
 	void SetColour(ui::Colour colour);
 	void SetToolStrength(float value);
-	void LoadSaveFile(SaveFile * file);
 	void LoadSave(SaveInfo * save);
 	void OpenSearch(String searchText);
-	void OpenLogin();
 	void OpenProfile();
 	void OpenSavePreview(int saveID, int saveDate, bool instant);
 	void OpenSavePreview();
