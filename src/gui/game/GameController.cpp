@@ -15,9 +15,7 @@
 #include "GameModelException.h"
 #include "simulation/Air.h"
 #include "gui/elementsearch/ElementSearchActivity.h"
-#include "gui/profile/ProfileActivity.h"
 #include "gui/colourpicker/ColourPickerActivity.h"
-#include "gui/update/UpdateActivity.h"
 #include "Notification.h"
 #include "gui/interface/Keys.h"
 #include "gui/interface/Mouse.h"
@@ -1095,15 +1093,6 @@ void GameController::OpenLogin()
 
 void GameController::OpenProfile()
 {
-	if(Client::Ref().GetAuthUser().UserID)
-	{
-		new ProfileActivity(Client::Ref().GetAuthUser().Username);
-	}
-	else
-	{
-		loginWindow = new LoginController();
-		ui::Engine::Ref().ShowWindow(loginWindow->GetView());
-	}
 }
 
 void GameController::OpenElementSearch()
@@ -1300,77 +1289,6 @@ void GameController::NotifyNewNotification(Client * sender, std::pair<String, By
 
 void GameController::NotifyUpdateAvailable(Client * sender)
 {
-	class UpdateConfirmation: public ConfirmDialogueCallback {
-	public:
-		GameController * c;
-		UpdateConfirmation(GameController * c_) {	c = c_;	}
-		virtual void ConfirmCallback(ConfirmPrompt::DialogueResult result) {
-			if (result == ConfirmPrompt::ResultOkay)
-			{
-				c->RunUpdater();
-			}
-		}
-		virtual ~UpdateConfirmation() { }
-	};
-
-	class UpdateNotification : public Notification
-	{
-		GameController * c;
-	public:
-		UpdateNotification(GameController * c, String message) : Notification(message), c(c) {}
-		virtual ~UpdateNotification() {}
-
-		virtual void Action()
-		{
-			UpdateInfo info = Client::Ref().GetUpdateInfo();
-			StringBuilder updateMessage;
-			updateMessage << "Are you sure you want to run the updater? Please save any changes before updating.\n\nCurrent version:\n ";
-
-#ifdef SNAPSHOT
-			updateMessage << "Snapshot " << SNAPSHOT_ID;
-#elif MOD_ID > 0
-			updateMessage << "Mod version " << SNAPSHOT_ID;
-#elif defined(BETA)
-			updateMessage << SAVE_VERSION << "." << MINOR_VERSION << " Beta, Build " << BUILD_NUM;
-#else
-			updateMessage << SAVE_VERSION << "." << MINOR_VERSION << " Stable, Build " << BUILD_NUM;
-#endif
-
-			updateMessage << "\nNew version:\n ";
-			if (info.Type == UpdateInfo::Beta)
-				updateMessage << info.Major << " " << info.Minor << " Beta, Build " << info.Build;
-			else if (info.Type == UpdateInfo::Snapshot)
-#if MOD_ID > 0
-				updateMessage << "Mod version " << info.Time;
-#else
-				updateMessage << "Snapshot " << info.Time;
-#endif
-			else if(info.Type == UpdateInfo::Stable)
-				updateMessage << info.Major << " " << info.Minor << " Stable, Build " << info.Build;
-
-			if (info.Changelog.length())
-				updateMessage << "\n\nChangelog:\n" << info.Changelog;
-
-			new ConfirmPrompt("Run Updater", updateMessage.Build(), new UpdateConfirmation(c));
-		}
-	};
-
-	switch(sender->GetUpdateInfo().Type)
-	{
-		case UpdateInfo::Snapshot:
-#if MOD_ID > 0
-			gameModel->AddNotification(new UpdateNotification(this, "A new mod update is available - click here to update"));
-#else
-			gameModel->AddNotification(new UpdateNotification(this, "A new snapshot is available - click here to update"));
-#endif
-			break;
-		case UpdateInfo::Stable:
-			gameModel->AddNotification(new UpdateNotification(this, "A new version is available - click here to update"));
-			break;
-		case UpdateInfo::Beta:
-			gameModel->AddNotification(new UpdateNotification(this, "A new beta is available - click here to update"));
-			break;
-	}
 }
 
 void GameController::RemoveNotification(Notification * notification)
@@ -1380,6 +1298,4 @@ void GameController::RemoveNotification(Notification * notification)
 
 void GameController::RunUpdater()
 {
-	Exit();
-	new UpdateActivity();
 }

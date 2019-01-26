@@ -40,7 +40,6 @@
 #include "gui/interface/Point.h"
 #include "client/SaveInfo.h"
 #include "client/UserInfo.h"
-#include "gui/preview/Comment.h"
 #include "ClientListener.h"
 #include "requestbroker/RequestBroker.h"
 #include "requestbroker/WebRequest.h"
@@ -1183,28 +1182,6 @@ RequestStatus Client::DeleteSave(int saveID)
 
 RequestStatus Client::AddComment(int saveID, String comment)
 {
-	lastError = "";
-	char * data = NULL;
-	int dataStatus, dataLength;
-	ByteString url = ByteString::Build("http://", SERVER, "/Browse/Comments.json?ID=", saveID);
-	if(authUser.UserID)
-	{
-		ByteString userID = ByteString::Build(authUser.UserID);
-
-		const char *const postNames[] = { "Comment", NULL };
-		ByteString commentBytes = comment.ToUtf8();
-		const char *const postDatas[] = { commentBytes.c_str() };
-		size_t postLengths[] = { commentBytes.size() };
-		data = http_multipart_post(url.c_str(), postNames, postDatas, postLengths, userID.c_str(), NULL, authUser.SessionID.c_str(), &dataStatus, &dataLength);
-	}
-	else
-	{
-		lastError = "Not authenticated";
-		return RequestFailure;
-	}
-	RequestStatus ret = ParseServerReturn(data, dataStatus, true);
-	free(data);
-	return ret;
 }
 
 RequestStatus Client::FavouriteSave(int saveID, bool favourite)
@@ -1441,44 +1418,6 @@ RequestBroker::Request * Client::GetSaveAsync(int saveID, int saveDate)
 
 RequestBroker::Request * Client::GetCommentsAsync(int saveID, int start, int count)
 {
-	class CommentsParser: public APIResultParser
-	{
-		virtual void * ProcessResponse(unsigned char * data, int dataLength)
-		{
-			std::vector<SaveComment*> * commentArray = new std::vector<SaveComment*>();
-			try
-			{
-				std::istringstream dataStream((char*)data);
-				Json::Value commentsArray;
-				dataStream >> commentsArray;
-
-				for (Json::UInt j = 0; j < commentsArray.size(); j++)
-				{
-					int userID = ByteString(commentsArray[j]["UserID"].asString()).ToNumber<int>();
-					ByteString username = commentsArray[j]["Username"].asString();
-					ByteString formattedUsername = commentsArray[j]["FormattedUsername"].asString();
-					if (formattedUsername == "jacobot")
-						formattedUsername = "\bt" + formattedUsername;
-					String comment = ByteString(commentsArray[j]["Text"].asString()).FromUtf8();
-					commentArray->push_back(new SaveComment(userID, username, formattedUsername, comment));
-				}
-				return commentArray;
-			}
-			catch (std::exception &e)
-			{
-				delete commentArray;
-				return NULL;
-			}
-		}
-		virtual void Cleanup(void * objectPtr)
-		{
-			delete (std::vector<SaveComment*>*)objectPtr;
-		}
-		virtual ~CommentsParser() { }
-	};
-
-	ByteString url = ByteString::Build("http://", SERVER, "/Browse/Comments.json?ID=", saveID, "&Start=", start, "&Count=", count);
-	return new APIRequest(url, new CommentsParser());
 }
 
 std::vector<std::pair<ByteString, int> > * Client::GetTags(int start, int count, String query, int & resultCount)
