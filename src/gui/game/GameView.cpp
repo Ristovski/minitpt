@@ -20,7 +20,7 @@
 #include "gui/interface/Window.h"
 #include "simulation/SaveRenderer.h"
 #include "simulation/SimulationData.h"
-
+#include "client/Client.h"
 
 class SplitButton;
 class SplitButtonAction
@@ -359,11 +359,11 @@ GameView::GameView():
 		LoginAction(GameView * _v) { v = _v; }
 		void ActionCallbackLeft(ui::Button * sender)
 		{
-			v->c->OpenLogin();
+			//v->c->OpenLogin();
 		}
 		void ActionCallbackRight(ui::Button * sender)
 		{
-			v->c->OpenProfile();
+			//v->c->OpenProfile();
 		}
 	};
 	loginButton = new SplitButton(ui::Point(Size.X-141, Size.Y-16), ui::Point(92, 15), "[sign in]", "Sign into simulation server", "Edit Profile", 19);

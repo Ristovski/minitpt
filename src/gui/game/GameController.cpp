@@ -5,6 +5,7 @@
 #include "Platform.h"
 #include "GameController.h"
 #include "GameModel.h"
+#include "client/Client.h"
 #include "client/SaveInfo.h"
 #include "gui/render/RenderController.h"
 #include "gui/interface/Point.h"
