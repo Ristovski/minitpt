@@ -7,7 +7,6 @@
 #include "simulation/Simulation.h"
 #include "gui/interface/Point.h"
 #include "gui/render/RenderController.h"
-#include "gui/preview/PreviewController.h"
 #include "gui/login/LoginController.h"
 #include "gui/tags/TagsController.h"
 #include "gui/console/ConsoleController.h"
@@ -30,7 +29,6 @@ private:
 	bool firstTick;
 	int foundSignID;
 
-	PreviewController * activePreview;
 	GameView * gameView;
 	GameModel * gameModel;
 	RenderController * renderOptions;

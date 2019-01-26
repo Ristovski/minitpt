@@ -53,18 +53,6 @@ public:
 	SaveOpenCallback(GameController * cc_) { cc = cc_; }
 	virtual void ControllerExit()
 	{
-		if(cc->activePreview->GetDoOpen() && cc->activePreview->GetSaveInfo())
-		{
-			try
-			{
-				cc->HistorySnapshot();
-				cc->LoadSave(cc->activePreview->GetSaveInfo());
-			}
-			catch(GameModelException & ex)
-			{
-				new ErrorMessage("Cannot open save", ByteString(ex.what()).FromUtf8());
-			}
-		}
 	}
 };
 
@@ -104,7 +92,6 @@ public:
 GameController::GameController():
 	firstTick(true),
 	foundSignID(-1),
-	activePreview(NULL),
 	renderOptions(NULL),
 	loginWindow(NULL),
 	console(NULL),
@@ -154,10 +141,6 @@ GameController::~GameController()
 	if(console)
 	{
 		delete console;
-	}
-	if(activePreview)
-	{
-		delete activePreview;
 	}
 	if (options)
 	{
@@ -899,12 +882,6 @@ void GameController::Update()
 		renderOptions = NULL;
 	}
 
-	if(activePreview && activePreview->HasExited)
-	{
-		delete activePreview;
-		activePreview = NULL;
-	}
-
 	if(loginWindow && loginWindow->HasExited)
 	{
 		delete loginWindow;
@@ -1100,17 +1077,10 @@ void GameController::LoadSave(SaveInfo * save)
 
 void GameController::OpenSavePreview(int saveID, int saveDate, bool instant)
 {
-	activePreview = new PreviewController(saveID, saveDate, instant, new SaveOpenCallback(this));
-	ui::Engine::Ref().ShowWindow(activePreview->GetView());
 }
 
 void GameController::OpenSavePreview()
 {
-	if(gameModel->GetSave())
-	{
-		activePreview = new PreviewController(gameModel->GetSave()->GetID(), false, new SaveOpenCallback(this));
-		ui::Engine::Ref().ShowWindow(activePreview->GetView());
-	}
 }
 
 void GameController::OpenLocalBrowse()

@@ -4,7 +4,6 @@
 #include <ctime>
 #include "RequestBroker.h"
 #include "RequestListener.h"
-#include "ThumbRenderRequest.h"
 #include "ImageRequest.h"
 #include "Platform.h"
 #include "client/Client.h"
@@ -78,15 +77,6 @@ void RequestBroker::Shutdown()
 
 void RequestBroker::RetrieveThumbnail(int saveID, int saveDate, int width, int height, RequestListener * tListener)
 {
-	ByteStringBuilder url;
-	url << "http://" << STATICSERVER << "/" << saveID;
-	if(saveDate)
-	{
-		url << "_" << saveDate;
-	}
-	url << "_small.pti";
-
-	RetrieveImage(url.Build(), width, height, tListener);
 }
 
 void RequestBroker::RetrieveAvatar(ByteString username, int width, int height, RequestListener * tListener)
@@ -130,24 +120,6 @@ TH_ENTRY_POINT void * RequestBroker::thumbnailQueueProcessHelper(void * ref)
 
 void RequestBroker::FlushThumbQueue()
 {
-	pthread_mutex_lock(&completeQueueMutex);
-	while(completeQueue.size())
-	{
-		if(CheckRequestListener(completeQueue.front()->Listener))
-		{
-			completeQueue.front()->Listener.second->OnResponseReady(completeQueue.front()->ResultObject, completeQueue.front()->Identifier);
-		}
-		else
-		{
-#ifdef DEBUG
-			std::cout << typeid(*this).name() << " Listener lost, discarding request" << std::endl;
-#endif
-			completeQueue.front()->Cleanup();
-		}
-		delete completeQueue.front();
-		completeQueue.pop();
-	}
-	pthread_mutex_unlock(&completeQueueMutex);
 }
 
 void RequestBroker::thumbnailQueueProcessTH()
@@ -234,7 +206,6 @@ void RequestBroker::requestComplete(Request * completedRequest)
 
 void RequestBroker::RetrieveThumbnail(int saveID, int width, int height, RequestListener * tListener)
 {
-	RetrieveThumbnail(saveID, 0, width, height, tListener);
 }
 
 bool RequestBroker::CheckRequestListener(ListenerHandle handle)

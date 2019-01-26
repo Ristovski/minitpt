@@ -1923,19 +1923,6 @@ void GameView::NotifyLogChanged(GameModel * sender, String entry)
 
 void GameView::NotifyPlaceSaveChanged(GameModel * sender)
 {
-	delete placeSaveThumb;
-	placeSaveOffset = ui::Point(0, 0);
-	if(sender->GetPlaceSave())
-	{
-		placeSaveThumb = SaveRenderer::Ref().Render(sender->GetPlaceSave());
-		selectMode = PlaceSave;
-		selectPoint2 = mousePosition;
-	}
-	else
-	{
-		placeSaveThumb = NULL;
-		selectMode = SelectNone;
-	}
 }
 
 void GameView::enableShiftBehaviour()
