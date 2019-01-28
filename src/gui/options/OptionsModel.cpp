@@ -1,7 +1,6 @@
 #include "simulation/Air.h"
 #include "gui/game/GameModel.h"
 #include "OptionsModel.h"
-#include "client/Client.h"
 
 OptionsModel::OptionsModel(GameModel * gModel_) {
 	gModel = gModel_;
@@ -146,7 +145,6 @@ void OptionsModel::SetFastQuit(bool fastquit)
 
 bool OptionsModel::GetShowAvatars()
 {
-	return Client::Ref().GetPrefBool("ShowAvatars", true);
 }
 
 void OptionsModel::SetShowAvatars(bool state)

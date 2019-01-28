@@ -1,6 +1,5 @@
 #include <cmath>
 #include <iostream>
-#include <bzlib.h>
 #include "common/String.h"
 #include "Config.h"
 #include "Misc.h"
@@ -167,115 +166,6 @@ char * Graphics::GenerateGradient(pixel * colours, float * points, int pointcoun
 		newdata[(cp*3)+2] = PIXB(colours[i])*(1.0f-cccpos) + PIXB(colours[j])*(cccpos);
 	}
 	return newdata;
-}
-
-void *Graphics::ptif_pack(pixel *src, int w, int h, int *result_size){
-	int i = 0, datalen = (w*h)*3, cx = 0, cy = 0;
-	unsigned char *red_chan = (unsigned char*)calloc(1, w*h);
-	unsigned char *green_chan = (unsigned char*)calloc(1, w*h);
-	unsigned char *blue_chan = (unsigned char*)calloc(1, w*h);
-	unsigned char *data = (unsigned char*)malloc(((w*h)*3)+8);
-	unsigned char *result = (unsigned char*)malloc(((w*h)*3)+8);
-
-	for(cx = 0; cx<w; cx++){
-		for(cy = 0; cy<h; cy++){
-			red_chan[w*(cy)+(cx)] = PIXR(src[w*(cy)+(cx)]);
-			green_chan[w*(cy)+(cx)] = PIXG(src[w*(cy)+(cx)]);
-			blue_chan[w*(cy)+(cx)] = PIXB(src[w*(cy)+(cx)]);
-		}
-	}
-
-	memcpy(data, red_chan, w*h);
-	memcpy(data+(w*h), green_chan, w*h);
-	memcpy(data+((w*h)*2), blue_chan, w*h);
-	free(red_chan);
-	free(green_chan);
-	free(blue_chan);
-
-	result[0] = 'P';
-	result[1] = 'T';
-	result[2] = 'i';
-	result[3] = 1;
-	result[4] = w;
-	result[5] = w>>8;
-	result[6] = h;
-	result[7] = h>>8;
-
-	i -= 8;
-
-	if(BZ2_bzBuffToBuffCompress((char *)(result+8), (unsigned *)&i, (char *)data, datalen, 9, 0, 0) != 0){
-		free(data);
-		free(result);
-		return NULL;
-	}
-
-	*result_size = i+8;
-	free(data);
-	return result;
-}
-
-pixel *Graphics::ptif_unpack(void *datain, int size, int *w, int *h){
-	int width, height, i, cx, cy, resCode;
-	unsigned char *red_chan;
-	unsigned char *green_chan;
-	unsigned char *blue_chan;
-	unsigned char *data = (unsigned char*)datain;
-	unsigned char *undata;
-	pixel *result;
-	if(size<16){
-		printf("Image empty\n");
-		return NULL;
-	}
-	if(!(data[0]=='P' && data[1]=='T' && data[2]=='i')){
-		printf("Image header invalid\n");
-		return NULL;
-	}
-	width = data[4]|(data[5]<<8);
-	height = data[6]|(data[7]<<8);
-
-	i = (width*height)*3;
-	undata = (unsigned char*)calloc(1, (width*height)*3);
-	red_chan = (unsigned char*)calloc(1, width*height);
-	green_chan = (unsigned char*)calloc(1, width*height);
-	blue_chan = (unsigned char *)calloc(1, width*height);
-	result = (pixel *)calloc(width*height, PIXELSIZE);
-
-	resCode = BZ2_bzBuffToBuffDecompress((char *)undata, (unsigned *)&i, (char *)(data+8), size-8, 0, 0);
-	if (resCode){
-		printf("Decompression failure, %d\n", resCode);
-		free(red_chan);
-		free(green_chan);
-		free(blue_chan);
-		free(undata);
-		free(result);
-		return NULL;
-	}
-	if(i != (width*height)*3){
-		printf("Result buffer size mismatch, %d != %d\n", i, (width*height)*3);
-		free(red_chan);
-		free(green_chan);
-		free(blue_chan);
-		free(undata);
-		free(result);
-		return NULL;
-	}
-	memcpy(red_chan, undata, width*height);
-	memcpy(green_chan, undata+(width*height), width*height);
-	memcpy(blue_chan, undata+((width*height)*2), width*height);
-
-	for(cx = 0; cx<width; cx++){
-		for(cy = 0; cy<height; cy++){
-			result[width*(cy)+(cx)] = PIXRGB(red_chan[width*(cy)+(cx)], green_chan[width*(cy)+(cx)], blue_chan[width*(cy)+(cx)]);
-		}
-	}
-
-	*w = width;
-	*h = height;
-	free(red_chan);
-	free(green_chan);
-	free(blue_chan);
-	free(undata);
-	return result;
 }
 
 pixel *Graphics::resample_img_nn(pixel * src, int sw, int sh, int rw, int rh)
@@ -1090,37 +980,6 @@ void Graphics::draw_rgba_image(const unsigned char *data_, int x, int y, float a
 			addpixel(x+i, y+j, r, g, b, (int)(a*alpha));
 		}
 	}
-}
-
-pixel *Graphics::render_packed_rgb(void *image, int width, int height, int cmp_size)
-{
-	unsigned char *tmp;
-	pixel *res;
-	int i;
-
-	tmp = (unsigned char *)malloc(width*height*3);
-	if (!tmp)
-		return NULL;
-	res = (pixel *)malloc(width*height*PIXELSIZE);
-	if (!res)
-	{
-		free(tmp);
-		return NULL;
-	}
-
-	i = width*height*3;
-	if (BZ2_bzBuffToBuffDecompress((char *)tmp, (unsigned *)&i, (char *)image, cmp_size, 0, 0))
-	{
-		free(res);
-		free(tmp);
-		return NULL;
-	}
-
-	for (i=0; i<width*height; i++)
-		res[i] = PIXRGB(tmp[3*i], tmp[3*i+1], tmp[3*i+2]);
-
-	free(tmp);
-	return res;
 }
 
 VideoBuffer Graphics::DumpFrame()

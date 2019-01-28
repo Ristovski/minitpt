@@ -15,12 +15,12 @@ include_dirs = include_directories('data/', 'generated/', 'src/')
 
 # Find a way to better organize these, need some sort of automatic list generation, a Meson macro perhaps
 mdep = meson.get_compiler('cpp').find_library('m')
-bz2bdep = meson.get_compiler('cpp').find_library('bz2')
-zlibdep = meson.get_compiler('cpp').find_library('libz')
+# bz2bdep = meson.get_compiler('cpp').find_library('bz2')
+# zlibdep = meson.get_compiler('cpp').find_library('libz')
 fftwdep = meson.get_compiler('cpp').find_library('fftw3f')
 sdldep = meson.get_compiler('cpp').find_library('SDL2')
 pthreaddep = meson.get_compiler('cpp').find_library('pthread')
 
-coredeps = [mdep, bz2bdep, zlibdep, fftwdep, sdldep, pthreaddep]
+coredeps = [mdep, fftwdep, sdldep, pthreaddep]
 
 executable('minitpt', sources, include_directories: include_dirs, dependencies: coredeps)

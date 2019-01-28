@@ -19,7 +19,6 @@
 #include "gui/interface/Window.h"
 #include "simulation/SaveRenderer.h"
 #include "simulation/SimulationData.h"
-#include "client/Client.h"
 
 class SplitButton;
 class SplitButtonAction
@@ -906,27 +905,6 @@ void GameView::screenshot()
 
 int GameView::Record(bool record)
 {
-	if (!record)
-	{
-		recording = false;
-		recordingIndex = 0;
-		recordingFolder = 0;
-	}
-	else if (!recording)
-	{
-		// block so that the return value is correct
-		bool record = ConfirmPrompt::Blocking("Recording", "You're about to start recording all drawn frames. This will use a load of disk space.");
-		if (record)
-		{
-			time_t startTime = time(NULL);
-			recordingFolder = startTime;
-			Client::Ref().MakeDirectory("recordings");
-			Client::Ref().MakeDirectory(ByteString::Build("recordings", PATH_SEP, recordingFolder).c_str());
-			recording = true;
-			recordingIndex = 0;
-		}
-	}
-	return recordingFolder;
 }
 
 void GameView::updateToolButtonScroll()
@@ -1461,11 +1439,7 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 		break;
 	case 'l':
 	{
-		std::vector<ByteString> stampList = Client::Ref().GetStamps(0, 1);
-		if (stampList.size())
-		{
-			break;
-		}
+		break;
 	}
 	case 'k':
 		selectMode = SelectNone;
@@ -2041,58 +2015,9 @@ void GameView::OnDraw()
 
 		ren->RenderEnd();
 
-		if(doScreenshot)
-		{
-			VideoBuffer screenshot(ren->DumpFrame());
-			std::vector<char> data = format::VideoBufferToPNG(screenshot);
-
-			ByteString filename = ByteString::Build("screenshot_", Format::Width(screenshotIndex++, 6), ".png");
-
-			Client::Ref().WriteFile(data, filename);
-			doScreenshot = false;
-		}
-
-		if(recording)
-		{
-			VideoBuffer screenshot(ren->DumpFrame());
-			std::vector<char> data = format::VideoBufferToPPM(screenshot);
-
-			ByteString filename = ByteString::Build("recordings", PATH_SEP, recordingFolder, PATH_SEP, "frame_", Format::Width(screenshotIndex++, 6), ".ppm");
-
-			Client::Ref().WriteFile(data, filename);
-		}
-
-		if (logEntries.size())
-		{
-			int startX = 20;
-			int startY = YRES-20;
-			deque<std::pair<String, int> >::iterator iter;
-			for(iter = logEntries.begin(); iter != logEntries.end(); iter++)
-			{
-				String message = (*iter).first;
-				int alpha = std::min((*iter).second, 255);
-				if (alpha <= 0) //erase this and everything older
-				{
-					logEntries.erase(iter, logEntries.end());
-					break;
-				}
-				startY -= 14;
-				g->fillrect(startX-3, startY-3, Graphics::textwidth(message)+6, 14, 0, 0, 0, 100);
-				g->drawtext(startX, startY, message, 255, 255, 255, alpha);
-				(*iter).second -= 3;
-			}
-		}
 	}
 
-	if(recording)
-	{
-		String sampleInfo = String::Build(recordingIndex, ". ", String(0xE00E), " REC");
-
-		int textWidth = Graphics::textwidth(sampleInfo);
-		g->fillrect(XRES-20-textWidth, 12, textWidth+8, 15, 0, 0, 0, 255*0.5);
-		g->drawtext(XRES-16-textWidth, 16, sampleInfo, 255, 50, 20, 255);
-	}
-	else if(showHud)
+	if(showHud)
 	{
 		//Draw info about simulation under cursor
 		int wavelengthGfx = 0, alpha = 255;

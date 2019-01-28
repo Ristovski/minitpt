@@ -1,6 +1,5 @@
 #include <iostream>
 #include "Tool.h"
-#include "client/Client.h"
 #include "gui/Style.h"
 #include "gui/game/Brush.h"
 #include "gui/interface/Window.h"
@@ -80,12 +79,12 @@ sim(sim_)
 	{
 		property->AddOption(std::pair<String, int>(properties[i].Name.FromAscii(), i));
 	}
-	property->SetOption(Client::Ref().GetPrefInteger("Prop.Type", 0));
+	property->SetOption(0);
 
 	textField = new ui::Textbox(ui::Point(8, 46), ui::Point(Size.X-16, 16), "", "[value]");
 	textField->Appearance.HorizontalAlign = ui::Appearance::AlignLeft;
 	textField->Appearance.VerticalAlign = ui::Appearance::AlignMiddle;
-	textField->SetText(Client::Ref().GetPrefString("Prop.Value", ""));
+	textField->SetText("");
 	AddComponent(textField);
 	FocusComponent(textField);
 

@@ -1,16 +1,6 @@
-#include "client/Client.h"
 #include "ConsoleModel.h"
 
 ConsoleModel::ConsoleModel() {
-	std::vector<String> previousHistory = Client::Ref().GetPrefStringArray("Console.History");
-	for(std::vector<String>::reverse_iterator iter = previousHistory.rbegin(), end = previousHistory.rend(); iter != end; ++iter)
-	{
-		if(previousCommands.size()<25)
-		{
-			previousCommands.push_front(ConsoleCommand(*iter, 0, ""));
-			currentCommandIndex = previousCommands.size();
-		}
-	}
 }
 
 void ConsoleModel::AddObserver(ConsoleView * observer)

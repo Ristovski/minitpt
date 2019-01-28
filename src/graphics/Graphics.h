@@ -108,12 +108,9 @@ public:
 	static char * GenerateGradient(pixel * colours, float * points, int pointcount, int size);
 
 	//PTIF methods
-	static void *ptif_pack(pixel *src, int w, int h, int *result_size);
-	static pixel *ptif_unpack(void *datain, int size, int *w, int *h);
 	static pixel *resample_img_nn(pixel *src, int sw, int sh, int rw, int rh);
 	static pixel *resample_img(pixel *src, int sw, int sh, int rw, int rh);
 	static pixel *rescale_img(pixel *src, int sw, int sh, int *qw, int *qh, int f);
-	static pixel *render_packed_rgb(void *image, int width, int height, int cmp_size);
 
 	//Font/text metrics
 	static int CharIndexAtPosition(String s, int positionX, int positionY);

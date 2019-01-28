@@ -5,7 +5,6 @@
 #include "Platform.h"
 #include "GameController.h"
 #include "GameModel.h"
-#include "client/Client.h"
 #include "gui/render/RenderController.h"
 #include "gui/interface/Point.h"
 #include "gui/dialogues/ErrorMessage.h"
@@ -61,7 +60,6 @@ public:
 	virtual void ControllerExit()
 	{
 		cc->gameModel->UpdateQuickOptions();
-		Client::Ref().WritePrefs();
 	}
 };
 
@@ -90,8 +88,6 @@ GameController::GameController():
 
 	gameView->AttachController(this);
 	gameModel->AddObserver(gameView);
-
-	gameView->SetDebugHUD(Client::Ref().GetPrefBool("Renderer.DebugMode", false));
 
 #ifdef LUACONSOLE
 	commandInterface = new LuaScriptInterface(this, gameModel);
@@ -189,32 +185,6 @@ void GameController::PlaceSave(ui::Point position, bool includePressure)
 
 void GameController::Install()
 {
-#if defined(MACOSX)
-	new InformationMessage("No installation necessary", "You don't need to install The Powder Toy on OS X", false);
-#elif defined(WIN) || defined(LIN)
-	class InstallConfirmation: public ConfirmDialogueCallback {
-	public:
-		GameController * c;
-		InstallConfirmation(GameController * c_) {	c = c_;	}
-		virtual void ConfirmCallback(ConfirmPrompt::DialogueResult result) {
-			if (result == ConfirmPrompt::ResultOkay)
-			{
-				if(Client::Ref().DoInstallation())
-				{
-					new InformationMessage("Success", "Installation completed", false);
-				}
-				else
-				{
-					new ErrorMessage("Could not install", "The installation did not complete due to an error");
-				}
-			}
-		}
-		virtual ~InstallConfirmation() { }
-	};
-	new ConfirmPrompt("Install The Powder Toy", "Do you wish to install The Powder Toy on this computer?\nThis allows you to open save files and saves directly from the website.", new InstallConfirmation(this));
-#else
-	new ErrorMessage("Cannot install", "You cannot install The Powder Toy on this platform");
-#endif
 }
 
 void GameController::AdjustGridSize(int direction)
@@ -632,12 +602,6 @@ void GameController::Tick()
 	{
 #ifdef LUACONSOLE
 		((LuaScriptInterface*)commandInterface)->Init();
-#endif
-#if !defined(MACOSX) && !defined(NO_INSTALL_CHECK)
-		if (Client::Ref().IsFirstRun())
-		{
-			Install();
-		}
 #endif
 		firstTick = false;
 	}

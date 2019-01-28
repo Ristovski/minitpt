@@ -9,7 +9,6 @@
 #include "GameModelException.h"
 #include "Format.h"
 
-#include "client/Client.h"
 #include "common/tpt-minmax.h"
 #include "graphics/Renderer.h"
 #include "simulation/Air.h"
@@ -61,25 +60,6 @@ GameModel::GameModel():
 	brushList.push_back(new EllipseBrush(ui::Point(4, 4)));
 	brushList.push_back(new Brush(ui::Point(4, 4)));
 	brushList.push_back(new TriangleBrush(ui::Point(4, 4)));
-
-	//Load more from brushes folder
-	std::vector<ByteString> brushFiles = Client::Ref().DirectorySearch(BRUSH_DIR, "", ".ptb");
-	for (size_t i = 0; i < brushFiles.size(); i++)
-	{
-		std::vector<unsigned char> brushData = Client::Ref().ReadFile(brushFiles[i]);
-		if(!brushData.size())
-		{
-			std::cout << "Brushes: Skipping " << brushFiles[i] << ". Could not open" << std::endl;
-			continue;
-		}
-		size_t dimension = std::sqrt((float)brushData.size());
-		if (dimension * dimension != brushData.size())
-		{
-			std::cout << "Brushes: Skipping " << brushFiles[i] << ". Invalid bitmap size" << std::endl;
-			continue;
-		}
-		brushList.push_back(new BitmapBrush(brushData, ui::Point(dimension, dimension)));
-	}
 
 	colourPresets.push_back(ui::Colour(255, 255, 255));
 	colourPresets.push_back(ui::Colour(0, 255, 255));
