@@ -54,7 +54,7 @@ Client::Client():
 	usingAltUpdateServer(false),
 	updateAvailable(false)
 {
-	firstRun = true;
+	firstRun = false;
 }
 
 void Client::Initialise(ByteString proxyString)

@@ -55,35 +55,6 @@ GameModel::GameModel():
 
 	ren->SetColourMode(0);
 
-	//Load config into renderer
-	ren->SetColourMode(Client::Ref().GetPrefUInteger("Renderer.ColourMode", 0));
-
-	tempArray = Client::Ref().GetPrefUIntegerArray("Renderer.DisplayModes");
-	if(tempArray.size())
-	{
-		std::vector<unsigned int> displayModes(tempArray.begin(), tempArray.end());
-		ren->SetDisplayMode(displayModes);
-	}
-
-	tempArray = Client::Ref().GetPrefUIntegerArray("Renderer.RenderModes");
-	if(tempArray.size())
-	{
-		std::vector<unsigned int> renderModes(tempArray.begin(), tempArray.end());
-		ren->SetRenderMode(renderModes);
-	}
-
-	ren->gravityFieldEnabled = Client::Ref().GetPrefBool("Renderer.GravityField", false);
-	ren->decorations_enable = Client::Ref().GetPrefBool("Renderer.Decorations", true);
-
-	//Load config into simulation
-	edgeMode = Client::Ref().GetPrefInteger("Simulation.EdgeMode", 0);
-	sim->SetEdgeMode(edgeMode);
-	int ngrav_enable = Client::Ref().GetPrefInteger("Simulation.NewtonianGravity", 0);
-	if (ngrav_enable)
-		sim->grav->start_grav_async();
-	sim->aheat_enable =  Client::Ref().GetPrefInteger("Simulation.AmbientHeat", 0);
-	sim->pretty_powder =  Client::Ref().GetPrefInteger("Simulation.PrettyPowder", 0);
-
 	BuildMenus();
 
 	//Set default brush palette
@@ -110,14 +81,6 @@ GameModel::GameModel():
 		brushList.push_back(new BitmapBrush(brushData, ui::Point(dimension, dimension)));
 	}
 
-	//Set default decoration colour
-	unsigned char colourR = std::min(Client::Ref().GetPrefInteger("Decoration.Red", 200), 255);
-	unsigned char colourG = std::min(Client::Ref().GetPrefInteger("Decoration.Green", 100), 255);
-	unsigned char colourB = std::min(Client::Ref().GetPrefInteger("Decoration.Blue", 50), 255);
-	unsigned char colourA = std::min(Client::Ref().GetPrefInteger("Decoration.Alpha", 255), 255);
-
-	SetColourSelectorColour(ui::Colour(colourR, colourG, colourB, colourA));
-
 	colourPresets.push_back(ui::Colour(255, 255, 255));
 	colourPresets.push_back(ui::Colour(0, 255, 255));
 	colourPresets.push_back(ui::Colour(255, 0, 255));
@@ -127,10 +90,7 @@ GameModel::GameModel():
 	colourPresets.push_back(ui::Colour(0, 0, 255));
 	colourPresets.push_back(ui::Colour(0, 0, 0));
 
-	undoHistoryLimit = Client::Ref().GetPrefInteger("Simulation.UndoHistoryLimit", 5);
-	// cap due to memory usage (this is about 3.4GB of RAM)
-	if (undoHistoryLimit > 200)
-		undoHistoryLimit = 200;
+	undoHistoryLimit = 200;
 }
 
 GameModel::~GameModel()
