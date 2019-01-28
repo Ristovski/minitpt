@@ -6,7 +6,7 @@ project('minitpt', 'cpp',
 features = ['-DSDL_INC', '-DLIN', '-DGRAVFFT', '-D_REENTRANT', '-D_64BIT', '-DDEBUG', '-DX86', '-DX86_SSE', '-DX86_SSE2', '-DX86_SSE3',
 			'-ftree-vectorize', '-funsafe-math-optimizations', '-ffast-math', '-fomit-frame-pointer', '-funsafe-loop-optimizations']
 
-add_global_arguments(['-march=native', '-pipe', '-O2', '-g', features], language : 'cpp')
+add_global_arguments(['-march=native', '-pipe', '-O2', features], language : 'cpp')
 
 # Ugly hack for now (well, not really) since Meson does not support wildcards (as to keep being "fast")
 # we can replace this later with a hardcoded list of source files
