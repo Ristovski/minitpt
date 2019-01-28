@@ -3,7 +3,6 @@
 #include "GameView.h"
 
 #include "Config.h"
-#include "Favorite.h"
 #include "Format.h"
 #include "IntroText.h"
 #include "QuickOptions.h"
@@ -263,17 +262,9 @@ GameView::GameView():
 		SaveSimulationAction(GameView * _v) { v = _v; }
 		void ActionCallbackRight(ui::Button * sender)
 		{
-			if(v->CtrlBehaviour() || !Client::Ref().GetAuthUser().UserID)
-				v->c->OpenLocalSaveWindow(false);
-			else
-				v->c->OpenSaveWindow();
 		}
 		void ActionCallbackLeft(ui::Button * sender)
 		{
-			if(v->CtrlBehaviour() || !Client::Ref().GetAuthUser().UserID)
-				v->c->OpenLocalSaveWindow(true);
-			else
-				v->c->SaveAsCurrent();
 		}
 	};
 	saveSimulationButton = new SplitButton(ui::Point(currentX, Size.Y-16), ui::Point(150, 15), "[untitled simulation]", "", "", 19);
@@ -540,23 +531,6 @@ public:
 		ToolButton *sender = (ToolButton*)sender_;
 		if (v->ShiftBehaviour() && v->CtrlBehaviour() && !v->AltBehaviour())
 		{
-			if (sender->GetSelectionState() == 0)
-			{
-				if (Favorite::Ref().IsFavorite(tool->GetIdentifier()))
-				{
-					Favorite::Ref().RemoveFavorite(tool->GetIdentifier());
-				}
-				else
-				{
-					Favorite::Ref().AddFavorite(tool->GetIdentifier());
-				}
-				v->c->RebuildFavoritesMenu();
-			}
-			else if (sender->GetSelectionState() == 1)
-			{
-				Favorite::Ref().RemoveFavorite(tool->GetIdentifier());
-				v->c->RebuildFavoritesMenu();
-			}
 		}
 		else
 		{
@@ -618,8 +592,6 @@ void GameView::NotifyMenuListChanged(GameModel * sender)
 			String tempString = "";
 			tempString += menuList[i]->GetIcon();
 			String description = menuList[i]->GetDescription();
-			if (i == SC_FAVORITES && !Favorite::Ref().AnyFavorites())
-				description += " (Use ctrl+shift+click to toggle the favorite status of an element)";
 			ui::Button * tempButton = new ui::Button(ui::Point(WINDOWW-16, currentY), ui::Point(15, 15), tempString, description);
 			tempButton->Appearance.Margin = ui::Border(0, 2, 3, 2);
 			tempButton->SetTogglable(true);
@@ -899,21 +871,6 @@ void GameView::NotifySimulationChanged(GameModel * sender)
 }
 void GameView::NotifyUserChanged(GameModel * sender)
 {
-	if(!sender->GetUser().UserID)
-	{
-		loginButton->SetText("[sign in]");
-		((SplitButton*)loginButton)->SetShowSplit(false);
-		((SplitButton*)loginButton)->SetRightToolTip("Sign in to simulation server");
-	}
-	else
-	{
-		loginButton->SetText(sender->GetUser().Username.FromUtf8());
-		((SplitButton*)loginButton)->SetShowSplit(true);
-		((SplitButton*)loginButton)->SetRightToolTip("Edit profile");
-	}
-	// saveSimulationButtonEnabled = sender->GetUser().ID;
-	saveSimulationButtonEnabled = true;
-	NotifySaveChanged(sender);
 }
 
 
@@ -1388,12 +1345,6 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 		c->ReloadSim();
 		break;
 	case 'a':
-		if ((Client::Ref().GetAuthUser().UserElevation == User::ElevationModerator
-		     || Client::Ref().GetAuthUser().UserElevation == User::ElevationAdmin) && ctrl)
-		{
-			ByteString authorString = Client::Ref().GetAuthorInfo().toStyledString();
-			new InformationMessage("Save authorship info", authorString.FromUtf8(), true);
-		}
 		break;
 	case 'r':
 		if (ctrl)
@@ -1961,14 +1912,6 @@ void GameView::UpdateToolStrength()
 
 void GameView::SetSaveButtonTooltips()
 {
-	if (!Client::Ref().GetAuthUser().UserID)
-		((SplitButton*)saveSimulationButton)->SetToolTips("Overwrite the open simulation on your hard drive.", "Save the simulation to your hard drive. Login to save online.");
-	else if (ctrlBehaviour)
-		((SplitButton*)saveSimulationButton)->SetToolTips("Overwrite the open simulation on your hard drive.", "Save the simulation to your hard drive.");
-	else if (((SplitButton*)saveSimulationButton)->GetShowSplit())
-		((SplitButton*)saveSimulationButton)->SetToolTips("Re-upload the current simulation", "Modify simulation properties");
-	else
-		((SplitButton*)saveSimulationButton)->SetToolTips("Re-upload the current simulation", "Upload a new simulation. Hold Ctrl to save offline.");
 }
 
 void GameView::OnDraw()

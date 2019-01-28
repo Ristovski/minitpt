@@ -9,13 +9,6 @@
 #include "Config.h"
 #include "common/Singleton.h"
 
-#include "User.h"
-#include "UserInfo.h"
-
-#include "json/json.h"
-
-#include "requestbroker/RequestBroker.h"
-
 class SaveInfo;
 class SaveFile;
 class SaveComment;
@@ -24,10 +17,6 @@ class VideoBuffer;
 
 enum LoginStatus {
 	LoginOkay, LoginError
-};
-
-enum RequestStatus {
-	RequestOkay, RequestFailure
 };
 
 class UpdateInfo
@@ -46,8 +35,6 @@ public:
 	UpdateInfo(int time, ByteString file, String changelog, BuildType type) : File(file), Changelog(changelog), Major(0), Minor(0), Build(0), Time(time), Type(type) {}
 };
 
-class RequestListener;
-class ClientListener;
 class Client: public Singleton<Client> {
 private:
 	String messageOfTheDay;
@@ -66,34 +53,12 @@ private:
 	unsigned lastStampTime;
 	int lastStampName;
 
-	//Auth session
-	User authUser;
-
 	void notifyUpdateAvailable();
 	void notifyAuthUserChanged();
 	void notifyMessageOfTheDay();
 	void notifyNewNotification(std::pair<String, ByteString> notification);
 
-	// internal preferences handling
-	Json::Value preferences;
-	Json::Value GetPref(Json::Value root, ByteString prop, Json::Value defaultValue = Json::nullValue);
-	Json::Value SetPrefHelper(Json::Value root, ByteString prop, Json::Value value);
-
-	// Save stealing info
-	Json::Value authors;
-
 public:
-
-	std::vector<ClientListener*> listeners;
-
-	// Save stealing info
-	void MergeStampAuthorInfo(Json::Value linksToAdd);
-	void MergeAuthorInfo(Json::Value linksToAdd);
-	void OverwriteAuthorInfo(Json::Value overwrite) { authors = overwrite; }
-	Json::Value GetAuthorInfo() { return authors; }
-	void SaveAuthorInfo(Json::Value *saveInto);
-	void ClearAuthorInfo() { authors.clear(); }
-	bool IsAuthorsEmpty() { return authors.size() == 0; }
 
 	UpdateInfo GetUpdateInfo();
 
@@ -125,12 +90,6 @@ public:
 	bool WriteFile(std::vector<char> fileData, ByteString filename);
 	bool FileExists(ByteString filename);
 
-	void AddListener(ClientListener * listener);
-	void RemoveListener(ClientListener * listener);
-
-	RequestStatus ExecVote(int saveID, int direction);
-	RequestStatus UploadSave(SaveInfo & save);
-
 	SaveFile * GetStamp(ByteString stampID);
 	void DeleteStamp(ByteString stampID);
 	ByteString AddStamp(GameSave * saveData);
@@ -141,38 +100,19 @@ public:
 	void MoveStampToFront(ByteString stampID);
 	void updateStamps();
 
-	RequestStatus AddComment(int saveID, String comment);
-
-	//Retrieves a "UserInfo" object
-	RequestBroker::Request * GetUserInfoAsync(ByteString username);
-	RequestBroker::Request * SaveUserInfoAsync(UserInfo info);
-
-	RequestBroker::Request * GetSaveDataAsync(int saveID, int saveDate);
 	unsigned char * GetSaveData(int saveID, int saveDate, int & dataLength);
 	std::vector<unsigned char> GetSaveData(int saveID, int saveDate);
 
-	LoginStatus Login(ByteString username, ByteString password, User & user);
 	std::vector<SaveInfo*> * SearchSaves(int start, int count, String query, ByteString sort, ByteString category, int & resultCount);
 	std::vector<std::pair<ByteString, int> > * GetTags(int start, int count, String query, int & resultCount);
 
-	RequestBroker::Request * GetCommentsAsync(int saveID, int start, int count);
-
 	SaveInfo * GetSave(int saveID, int saveDate);
-	RequestBroker::Request * GetSaveAsync(int saveID, int saveDate);
 
-	RequestStatus DeleteSave(int saveID);
-	RequestStatus ReportSave(int saveID, String message);
-	RequestStatus UnpublishSave(int saveID);
-	RequestStatus PublishSave(int saveID);
-	RequestStatus FavouriteSave(int saveID, bool favourite);
-	void SetAuthUser(User user);
-	User GetAuthUser();
 	std::list<ByteString> * RemoveTag(int saveID, ByteString tag); //TODO RequestStatus
 	std::list<ByteString> * AddTag(int saveID, ByteString tag);
 	String GetLastError() {
 		return lastError;
 	}
-	RequestStatus ParseServerReturn(char *result, int status, bool json);
 	void Tick();
 	bool CheckUpdate(void *updateRequest, bool checkSession);
 	void Shutdown();
@@ -193,8 +133,6 @@ public:
 	std::vector<unsigned int> GetPrefUIntegerArray(ByteString prop);
 	std::vector<bool> GetPrefBoolArray(ByteString prop);
 
-	void SetPref(ByteString prop, Json::Value value);
-	void SetPref(ByteString property, std::vector<Json::Value> value);
 	void SetPrefUnicode(ByteString prop, String value);
 };
 

@@ -3,14 +3,12 @@
 
 #include <vector>
 #include <deque>
-#include "client/SaveInfo.h"
 #include "simulation/Simulation.h"
 #include "gui/interface/Colour.h"
 #include "graphics/Renderer.h"
 #include "GameView.h"
 #include "GameController.h"
 #include "Brush.h"
-#include "client/User.h"
 #include "Notification.h"
 #include "QuickOption.h"
 #include "Tool.h"
@@ -57,13 +55,11 @@ private:
 	int activeMenu;
 	int currentBrush;
 	vector<Brush *> brushList;
-	SaveInfo * currentSave;
 	SaveFile * currentFile;
 	Tool * lastTool;
 	Tool ** activeTools;
 	Tool * decoToolset[4];
 	Tool * regularToolset[4];
-	User currentUser;
 	float toolStrength;
 	std::deque<Snapshot*> history;
 	Snapshot *redoHistory;
@@ -160,9 +156,6 @@ public:
 	void SetBrushID(int i);
 
 	void SetVote(int direction);
-	SaveInfo * GetSave();
-	SaveFile * GetSaveFile();
-	void SetSave(SaveInfo * newSave);
 	void SetSaveFile(SaveFile * newSave);
 	void AddObserver(GameView * observer);
 
@@ -182,8 +175,6 @@ public:
 	void SetActiveMenu(int menuID);
 	int GetActiveMenu();
 	void FrameStep(int frames);
-	User GetUser();
-	void SetUser(User user);
 	Simulation * GetSimulation();
 	Renderer * GetRenderer();
 	void SetZoomEnabled(bool enabled);

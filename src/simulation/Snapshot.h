@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "Particle.h"
-#include "json/json.h"
 
 class Snapshot
 {
@@ -31,8 +30,6 @@ public:
 	std::vector<int> WirelessData;
 	std::vector<playerst> stickmen;
 	std::vector<sign> signs;
-
-	Json::Value Authors;
 
 	Snapshot() :
 		AirPressure(),

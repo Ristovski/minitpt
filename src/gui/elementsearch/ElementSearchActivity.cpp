@@ -6,7 +6,6 @@
 #include "gui/interface/Keys.h"
 #include "gui/game/Tool.h"
 #include "gui/Style.h"
-#include "gui/game/Favorite.h"
 #include "gui/game/GameController.h"
 
 class ElementSearchActivity::ToolAction: public ui::ButtonAction
@@ -175,8 +174,6 @@ void ElementSearchActivity::SetActiveTool(int selectionState, Tool * tool)
 {
 	if (ctrlPressed && shiftPressed && !altPressed)
 	{
-		Favorite::Ref().AddFavorite(tool->GetIdentifier());
-		gameController->RebuildFavoritesMenu();
 	}
 	else if (ctrlPressed && altPressed && !shiftPressed &&
 	         tool->GetIdentifier().Contains("DEFAULT_PT_"))

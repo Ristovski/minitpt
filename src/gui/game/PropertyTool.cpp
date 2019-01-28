@@ -198,8 +198,6 @@ void PropertyWindow::SetProperty()
 			new ErrorMessage("Could not set property", "Invalid value provided");
 			return;
 		}
-		Client::Ref().SetPref("Prop.Type", property->GetOption().second);
-		Client::Ref().SetPrefUnicode("Prop.Value", textField->GetText());
 	}
 }
 

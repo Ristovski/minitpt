@@ -99,7 +99,6 @@ int OptionsModel::GetScale()
 void OptionsModel::SetScale(int scale)
 {
 	ui::Engine::Ref().SetScale(scale);
-	Client::Ref().SetPref("Scale", int(scale));
 	notifySettingsChanged();
 }
 
@@ -111,7 +110,6 @@ bool OptionsModel::GetResizable()
 void OptionsModel::SetResizable(bool resizable)
 {
 	ui::Engine::Ref().SetResizable(resizable);
-	Client::Ref().SetPref("Resizable", resizable);
 	notifySettingsChanged();
 }
 
@@ -122,7 +120,6 @@ bool OptionsModel::GetFullscreen()
 void OptionsModel::SetFullscreen(bool fullscreen)
 {
 	ui::Engine::Ref().SetFullscreen(fullscreen);
-	Client::Ref().SetPref("Fullscreen", fullscreen);
 	notifySettingsChanged();
 }
 
@@ -134,7 +131,6 @@ bool OptionsModel::GetAltFullscreen()
 void OptionsModel::SetAltFullscreen(bool altFullscreen)
 {
 	ui::Engine::Ref().SetAltFullscreen(altFullscreen);
-	Client::Ref().SetPref("AltFullscreen", altFullscreen);
 	notifySettingsChanged();
 }
 
@@ -145,7 +141,6 @@ bool OptionsModel::GetFastQuit()
 void OptionsModel::SetFastQuit(bool fastquit)
 {
 	ui::Engine::Ref().SetFastQuit(fastquit);
-	Client::Ref().SetPref("FastQuit", bool(fastquit));
 	notifySettingsChanged();
 }
 
@@ -156,7 +151,6 @@ bool OptionsModel::GetShowAvatars()
 
 void OptionsModel::SetShowAvatars(bool state)
 {
-	Client::Ref().SetPref("ShowAvatars", state);
 	notifySettingsChanged();
 }
 

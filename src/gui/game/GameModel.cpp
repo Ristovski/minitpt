@@ -8,7 +8,6 @@
 #include "QuickOptions.h"
 #include "GameModelException.h"
 #include "Format.h"
-#include "Favorite.h"
 
 #include "client/Client.h"
 #include "common/tpt-minmax.h"
@@ -27,9 +26,7 @@ GameModel::GameModel():
 	placeSave(NULL),
 	activeMenu(-1),
 	currentBrush(0),
-	currentSave(NULL),
 	currentFile(NULL),
-	currentUser(0, ""),
 	toolStrength(1.0f),
 	redoHistory(NULL),
 	historyPosition(0),
@@ -87,14 +84,6 @@ GameModel::GameModel():
 	sim->aheat_enable =  Client::Ref().GetPrefInteger("Simulation.AmbientHeat", 0);
 	sim->pretty_powder =  Client::Ref().GetPrefInteger("Simulation.PrettyPowder", 0);
 
-	Favorite::Ref().LoadFavoritesFromPrefs();
-
-	//Load last user
-	if(Client::Ref().GetAuthUser().UserID)
-	{
-		currentUser = Client::Ref().GetAuthUser();
-	}
-
 	BuildMenus();
 
 	//Set default brush palette
@@ -146,33 +135,6 @@ GameModel::GameModel():
 
 GameModel::~GameModel()
 {
-	//Save to config:
-	Client::Ref().SetPref("Renderer.ColourMode", ren->GetColourMode());
-
-	std::vector<unsigned int> displayModes = ren->GetDisplayMode();
-	Client::Ref().SetPref("Renderer.DisplayModes", std::vector<Json::Value>(displayModes.begin(), displayModes.end()));
-
-	std::vector<unsigned int> renderModes = ren->GetRenderMode();
-	Client::Ref().SetPref("Renderer.RenderModes", std::vector<Json::Value>(renderModes.begin(), renderModes.end()));
-
-	Client::Ref().SetPref("Renderer.GravityField", (bool)ren->gravityFieldEnabled);
-	Client::Ref().SetPref("Renderer.Decorations", (bool)ren->decorations_enable);
-	Client::Ref().SetPref("Renderer.DebugMode", ren->debugLines); //These two should always be equivalent, even though they are different things
-
-	Client::Ref().SetPref("Simulation.EdgeMode", edgeMode);
-	Client::Ref().SetPref("Simulation.NewtonianGravity", sim->grav->ngrav_enable);
-	Client::Ref().SetPref("Simulation.AmbientHeat", sim->aheat_enable);
-	Client::Ref().SetPref("Simulation.PrettyPowder", sim->pretty_powder);
-
-	Client::Ref().SetPref("Decoration.Red", (int)colour.Red);
-	Client::Ref().SetPref("Decoration.Green", (int)colour.Green);
-	Client::Ref().SetPref("Decoration.Blue", (int)colour.Blue);
-	Client::Ref().SetPref("Decoration.Alpha", (int)colour.Alpha);
-
-	Client::Ref().SetPref("Simulation.UndoHistoryLimit", undoHistoryLimit);
-
-	Favorite::Ref().SaveFavoritesToPrefs();
-
 	for (size_t i = 0; i < menuList.size(); i++)
 	{
 		if (i == SC_FAVORITES)
@@ -191,7 +153,6 @@ GameModel::~GameModel()
 	delete ren;
 	delete placeSave;
 	delete clipboard;
-	delete currentSave;
 	delete currentFile;
 	delete redoHistory;
 	//if(activeTools)
@@ -375,30 +336,6 @@ void GameModel::BuildMenus()
 	notifyToolListChanged();
 	notifyActiveToolsChanged();
 	notifyLastToolChanged();
-
-	//Build menu for favorites
-	BuildFavoritesMenu();
-}
-
-void GameModel::BuildFavoritesMenu()
-{
-	menuList[SC_FAVORITES]->ClearTools();
-
-	std::vector<ByteString> favList = Favorite::Ref().GetFavoritesList();
-	for (size_t i = 0; i < favList.size(); i++)
-	{
-		Tool *tool = GetToolFromIdentifier(favList[i]);
-		if (tool)
-			menuList[SC_FAVORITES]->AddTool(tool);
-	}
-
-	if (activeMenu == SC_FAVORITES)
-		toolList = menuList[SC_FAVORITES]->GetToolList();
-
-	notifyMenuListChanged();
-	notifyToolListChanged();
-	notifyActiveToolsChanged();
-	notifyLastToolChanged();
 }
 
 Tool * GameModel::GetToolFromIdentifier(ByteString identifier)
@@ -474,19 +411,6 @@ void GameModel::SetUndoHistoryLimit(unsigned int undoHistoryLimit_)
 
 void GameModel::SetVote(int direction)
 {
-	if(currentSave)
-	{
-		RequestStatus status = Client::Ref().ExecVote(currentSave->GetID(), direction);
-		if(status == RequestOkay)
-		{
-			currentSave->vote = direction;
-			notifySaveChanged();
-		}
-		else
-		{
-			throw GameModelException("Could not vote: "+Client::Ref().GetLastError());
-		}
-	}
 }
 
 Brush * GameModel::GetBrush()
@@ -520,7 +444,6 @@ void GameModel::AddObserver(GameView * observer){
 	observer->NotifyBrushChanged(this);
 	observer->NotifyMenuListChanged(this);
 	observer->NotifyToolListChanged(this);
-	observer->NotifyUserChanged(this);
 	observer->NotifyZoomChanged(this);
 	observer->NotifyColourSelectorVisibilityChanged(this);
 	observer->NotifyColourSelectorColourChanged(this);
@@ -612,20 +535,6 @@ vector<Menu*> GameModel::GetMenuList()
 	return menuList;
 }
 
-SaveInfo * GameModel::GetSave()
-{
-	return currentSave;
-}
-
-void GameModel::SetSave(SaveInfo * newSave)
-{
-}
-
-SaveFile * GameModel::GetSaveFile()
-{
-	return currentFile;
-}
-
 void GameModel::SetSaveFile(SaveFile * newSave)
 {
 }
@@ -638,11 +547,6 @@ Simulation * GameModel::GetSimulation()
 Renderer * GameModel::GetRenderer()
 {
 	return ren;
-}
-
-User GameModel::GetUser()
-{
-	return currentUser;
 }
 
 Tool * GameModel::GetLastTool()
@@ -808,13 +712,6 @@ ui::Colour GameModel::GetColourSelectorColour()
 	return colour;
 }
 
-void GameModel::SetUser(User user)
-{
-	currentUser = user;
-	//Client::Ref().SetAuthUser(user);
-	notifyUserChanged();
-}
-
 void GameModel::SetPaused(bool pauseState)
 {
 	if (!pauseState && sim->debug_currentParticle > 0)
@@ -919,7 +816,6 @@ void GameModel::ClearSimulation()
 
 	sim->clear_sim();
 	ren->ClearAccumulation();
-	Client::Ref().ClearAuthorInfo();
 
 	notifySaveChanged();
 	UpdateQuickOptions();
@@ -1101,10 +997,6 @@ void GameModel::notifyActiveToolsChanged()
 
 void GameModel::notifyUserChanged()
 {
-	for (size_t i = 0; i < observers.size(); i++)
-	{
-		observers[i]->NotifyUserChanged(this);
-	}
 }
 
 void GameModel::notifyZoomChanged()

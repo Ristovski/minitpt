@@ -44,8 +44,6 @@
 #include "gui/interface/Keys.h"
 #include "gui/Style.h"
 
-#include "client/HTTP.h"
-
 using namespace std;
 
 #define INCLUDE_SYSWM
@@ -97,9 +95,6 @@ void SaveWindowPosition()
 
 	int borderTop, borderLeft;
 	SDL_GetWindowBordersSize(sdl_window, &borderTop, &borderLeft, nullptr, nullptr);
-
-	Client::Ref().SetPref("WindowX", x - borderLeft);
-	Client::Ref().SetPref("WindowY", y - borderTop);
 }
 
 void CalculateMousePosition(int *x, int *y)
@@ -424,7 +419,6 @@ void DoubleScreenDialog()
 	message << "\nTo undo this, hit Cancel. You can toggle double size mode in settings at any time.";
 	if (!ConfirmPrompt::Blocking("Large screen detected", message.Build()))
 	{
-		Client::Ref().SetPref("Scale", 1);
 		engine->SetScale(1);
 	}
 }
@@ -578,13 +572,11 @@ int main(int argc, char * argv[])
 	if(arguments["kiosk"] == "true")
 	{
 		fullscreen = true;
-		Client::Ref().SetPref("Fullscreen", fullscreen);
 	}
 
 	if(arguments["scale"].length())
 	{
 		scale = arguments["scale"].ToNumber<int>();
-		Client::Ref().SetPref("Scale", scale);
 	}
 
 	// TODO: maybe bind the maximum allowed scale to screen size somehow
@@ -596,7 +588,6 @@ int main(int argc, char * argv[])
 	if (Client::Ref().IsFirstRun() && desktopWidth > WINDOWW*2+30 && desktopHeight > WINDOWH*2+30)
 	{
 		scale = 2;
-		Client::Ref().SetPref("Scale", 2);
 		SDL_SetWindowSize(sdl_window, WINDOWW * 2, WINDOWH * 2);
 		showDoubleScreenDialog = true;
 	}
@@ -668,7 +659,6 @@ int main(int argc, char * argv[])
 	}
 #endif
 
-	Client::Ref().SetPref("Scale", ui::Engine::Ref().GetScale());
 	ui::Engine::Ref().CloseWindow();
 	delete gameController;
 	delete ui::Engine::Ref().g;

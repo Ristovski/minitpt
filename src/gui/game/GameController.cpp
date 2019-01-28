@@ -6,7 +6,6 @@
 #include "GameController.h"
 #include "GameModel.h"
 #include "client/Client.h"
-#include "client/SaveInfo.h"
 #include "gui/render/RenderController.h"
 #include "gui/interface/Point.h"
 #include "gui/dialogues/ErrorMessage.h"
@@ -101,8 +100,6 @@ GameController::GameController():
 	commandInterface = new TPTScriptInterface(this, gameModel);
 #endif
 
-	Client::Ref().AddListener(this);
-
 	debugInfo.push_back(new DebugParts(0x1, gameModel->GetSimulation()));
 	debugInfo.push_back(new ElementPopulationDebug(0x2, gameModel->GetSimulation()));
 	debugInfo.push_back(new DebugLines(0x4, gameView, this));
@@ -152,75 +149,14 @@ GameController::~GameController()
 
 void GameController::HistoryRestore()
 {
-	std::deque<Snapshot*> history = gameModel->GetHistory();
-	if (!history.size())
-		return;
-	unsigned int historyPosition = gameModel->GetHistoryPosition();
-	unsigned int newHistoryPosition = std::max((int)historyPosition-1, 0);
-	// When undoing, save the current state as a final redo
-	// This way ctrl+y will always bring you back to the point right before your last ctrl+z
-	if (historyPosition == history.size())
-	{
-		Snapshot * newSnap = gameModel->GetSimulation()->CreateSnapshot();
-		if (newSnap)
-			newSnap->Authors = Client::Ref().GetAuthorInfo();
-		delete gameModel->GetRedoHistory();
-		gameModel->SetRedoHistory(newSnap);
-	}
-	Snapshot * snap = history[newHistoryPosition];
-	gameModel->GetSimulation()->Restore(*snap);
-	Client::Ref().OverwriteAuthorInfo(snap->Authors);
-	gameModel->SetHistory(history);
-	gameModel->SetHistoryPosition(newHistoryPosition);
 }
 
 void GameController::HistorySnapshot()
 {
-	std::deque<Snapshot*> history = gameModel->GetHistory();
-	unsigned int historyPosition = gameModel->GetHistoryPosition();
-	Snapshot * newSnap = gameModel->GetSimulation()->CreateSnapshot();
-	if (newSnap)
-	{
-		newSnap->Authors = Client::Ref().GetAuthorInfo();
-		while (historyPosition < history.size())
-		{
-			Snapshot * snap = history.back();
-			history.pop_back();
-			delete snap;
-		}
-		if (history.size() >= gameModel->GetUndoHistoryLimit())
-		{
-			Snapshot * snap = history.front();
-			history.pop_front();
-			delete snap;
-			if (historyPosition > history.size())
-				historyPosition--;
-		}
-		history.push_back(newSnap);
-		gameModel->SetHistory(history);
-		gameModel->SetHistoryPosition(std::min((size_t)historyPosition+1, history.size()));
-		delete gameModel->GetRedoHistory();
-		gameModel->SetRedoHistory(NULL);
-	}
 }
 
 void GameController::HistoryForward()
 {
-	std::deque<Snapshot*> history = gameModel->GetHistory();
-	if (!history.size())
-		return;
-	unsigned int historyPosition = gameModel->GetHistoryPosition();
-	unsigned int newHistoryPosition = std::min((size_t)historyPosition+1, history.size());
-	Snapshot *snap;
-	if (newHistoryPosition == history.size())
-		snap = gameModel->GetRedoHistory();
-	else
-		snap = history[newHistoryPosition];
-	if (!snap)
-		return;
-	gameModel->GetSimulation()->Restore(*snap);
-	Client::Ref().OverwriteAuthorInfo(snap->Authors);
-	gameModel->SetHistoryPosition(newHistoryPosition);
 }
 
 GameView * GameController::GetView()
@@ -976,11 +912,6 @@ int GameController::GetNumMenus(bool onlyEnabled)
 	return count;
 }
 
-void GameController::RebuildFavoritesMenu()
-{
-	gameModel->BuildFavoritesMenu();
-}
-
 Tool * GameController::GetActiveTool(int selection)
 {
 	return gameModel->GetActiveTool(selection);
@@ -1033,11 +964,6 @@ void GameController::OpenSearch(String searchText)
 
 void GameController::OpenLocalSaveWindow(bool asCurrent)
 {
-}
-
-void GameController::LoadSave(SaveInfo * save)
-{
-	gameModel->SetSave(save);
 }
 
 void GameController::OpenSavePreview(int saveID, int saveDate, bool instant)
@@ -1137,17 +1063,6 @@ void GameController::FrameStep()
 
 void GameController::Vote(int direction)
 {
-	if(gameModel->GetSave() && gameModel->GetUser().UserID && gameModel->GetSave()->GetID() && gameModel->GetSave()->GetVote()==0)
-	{
-		try
-		{
-			gameModel->SetVote(direction);
-		}
-		catch(GameModelException & ex)
-		{
-			new ErrorMessage("Error while voting", ByteString(ex.what()).FromUtf8());
-		}
-	}
 }
 
 void GameController::ChangeBrush()
@@ -1158,17 +1073,11 @@ void GameController::ChangeBrush()
 void GameController::ClearSim()
 {
 	HistorySnapshot();
-	gameModel->SetSave(NULL);
 	gameModel->ClearSimulation();
 }
 
 void GameController::ReloadSim()
 {
-	if(gameModel->GetSave())
-	{
-		HistorySnapshot();
-		gameModel->SetSave(gameModel->GetSave());
-	}
 }
 
 ByteString GameController::ElementResolve(int type, int ctype)
@@ -1204,33 +1113,6 @@ String GameController::WallName(int type)
 int GameController::Record(bool record)
 {
 	return gameView->Record(record);
-}
-
-void GameController::NotifyAuthUserChanged(Client * sender)
-{
-	User newUser = sender->GetAuthUser();
-	gameModel->SetUser(newUser);
-}
-
-void GameController::NotifyNewNotification(Client * sender, std::pair<String, ByteString> notification)
-{
-	class LinkNotification : public Notification
-	{
-		ByteString link;
-	public:
-		LinkNotification(ByteString link_, String message) : Notification(message), link(link_) {}
-		virtual ~LinkNotification() {}
-
-		virtual void Action()
-		{
-			Platform::OpenURI(link);
-		}
-	};
-	gameModel->AddNotification(new LinkNotification(notification.second, notification.first));
-}
-
-void GameController::NotifyUpdateAvailable(Client * sender)
-{
 }
 
 void GameController::RemoveNotification(Notification * notification)

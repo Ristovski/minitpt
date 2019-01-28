@@ -70,6 +70,5 @@ void ConsoleModel::notifyCurrentCommandChanged()
 }
 
 ConsoleModel::~ConsoleModel() {
-	Client::Ref().SetPref("Console.History", std::vector<Json::Value>(previousCommands.begin(), previousCommands.end()));
 }
 

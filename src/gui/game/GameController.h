@@ -9,7 +9,6 @@
 #include "gui/render/RenderController.h"
 #include "gui/console/ConsoleController.h"
 #include "gui/options/OptionsController.h"
-#include "client/ClientListener.h"
 #include "RenderPreset.h"
 #include "Menu.h"
 
@@ -21,7 +20,7 @@ class GameModel;
 class GameView;
 class CommandInterface;
 class ConsoleController;
-class GameController: public ClientListener
+class GameController
 {
 private:
 	bool firstTick;
@@ -95,7 +94,6 @@ public:
 	void SetActiveMenu(int menuID);
 	std::vector<Menu*> GetMenuList();
 	int GetNumMenus(bool onlyEnabled);
-	void RebuildFavoritesMenu();
 	Tool * GetActiveTool(int selection);
 	void SetActiveTool(int toolSelection, Tool * tool);
 	void SetActiveTool(int toolSelection, ByteString identifier);
@@ -105,7 +103,6 @@ public:
 	void SetActiveColourPreset(int preset);
 	void SetColour(ui::Colour colour);
 	void SetToolStrength(float value);
-	void LoadSave(SaveInfo * save);
 	void OpenSearch(String searchText);
 	void OpenProfile();
 	void OpenSavePreview(int saveID, int saveDate, bool instant);
@@ -150,9 +147,6 @@ public:
 
 	void RemoveNotification(Notification * notification);
 
-	virtual void NotifyUpdateAvailable(Client * sender);
-	virtual void NotifyAuthUserChanged(Client * sender);
-	virtual void NotifyNewNotification(Client * sender, std::pair<String, ByteString> notification);
 	void RunUpdater();
 };
 

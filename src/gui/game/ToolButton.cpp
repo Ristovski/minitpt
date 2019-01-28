@@ -2,7 +2,6 @@
 #include "graphics/Graphics.h"
 #include "gui/interface/Keys.h"
 #include "gui/interface/Mouse.h"
-#include "Favorite.h"
 
 ToolButton::ToolButton(ui::Point position, ui::Point size, ByteString text_, ByteString toolIdentifier, String toolTip):
 	ui::Button(position, size, text_.FromAscii(), toolTip),
@@ -10,7 +9,6 @@ ToolButton::ToolButton(ui::Point position, ui::Point size, ByteString text_, Byt
 {
 	SetSelectionState(-1);
 	Appearance.BorderActive = ui::Colour(255, 0, 0);
-	Appearance.BorderFavorite = ui::Colour(255, 255, 0);
 
 	//don't use "..." on elements that have long names
 	buttonDisplayText = ButtonText.Substr(0, 7);
@@ -64,10 +62,6 @@ void ToolButton::Draw(const ui::Point& screenPos)
 	else
 	{
 		g->drawrect(screenPos.X, screenPos.Y, Size.X, Size.Y, Appearance.BorderInactive.Red, Appearance.BorderInactive.Green, Appearance.BorderInactive.Blue, Appearance.BorderInactive.Alpha);
-	}
-	if (Favorite::Ref().IsFavorite(toolIdentifier))
-	{
-		g->drawtext(screenPos.X, screenPos.Y, 0xE068, Appearance.BorderFavorite.Red, Appearance.BorderFavorite.Green, Appearance.BorderFavorite.Blue, Appearance.BorderFavorite.Alpha);
 	}
 
 	if (totalColour<544)
