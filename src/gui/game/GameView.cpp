@@ -17,6 +17,7 @@
 #include "gui/interface/Mouse.h"
 #include "gui/interface/Slider.h"
 #include "gui/interface/Window.h"
+#include "gui/interface/Engine.h"
 #include "simulation/SaveRenderer.h"
 #include "simulation/SimulationData.h"
 
@@ -1264,7 +1265,6 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 		return;
 	if (scan == SDL_SCANCODE_GRAVE)
 	{
-		c->ShowConsole();
 		return;
 	}
 	switch(key)

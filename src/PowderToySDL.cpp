@@ -35,6 +35,7 @@
 
 #include "gui/game/GameController.h"
 #include "gui/game/GameView.h"
+#include "gui/interface/Engine.h"
 
 #include "gui/font/FontEditor.h"
 

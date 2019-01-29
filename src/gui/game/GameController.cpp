@@ -17,18 +17,13 @@
 #include "Notification.h"
 #include "gui/interface/Keys.h"
 #include "gui/interface/Mouse.h"
+#include "gui/interface/Engine.h"
 #include "simulation/Snapshot.h"
 #include "debug/DebugInfo.h"
 #include "debug/DebugParts.h"
 #include "debug/ElementPopulation.h"
 #include "debug/DebugLines.h"
 #include "debug/ParticleDebug.h"
-#ifdef LUACONSOLE
-#include "lua/LuaScriptInterface.h"
-#else
-#include "lua/TPTScriptInterface.h"
-#endif
-#include "lua/LuaEvents.h"
 
 using namespace std;
 
@@ -77,7 +72,6 @@ GameController::GameController():
 	firstTick(true),
 	foundSignID(-1),
 	renderOptions(NULL),
-	console(NULL),
 	options(NULL),
 	debugFlags(0),
 	HasDone(false)
@@ -88,13 +82,6 @@ GameController::GameController():
 
 	gameView->AttachController(this);
 	gameModel->AddObserver(gameView);
-
-#ifdef LUACONSOLE
-	commandInterface = new LuaScriptInterface(this, gameModel);
-	((LuaScriptInterface*)commandInterface)->SetWindow(gameView);
-#else
-	commandInterface = new TPTScriptInterface(this, gameModel);
-#endif
 
 	debugInfo.push_back(new DebugParts(0x1, gameModel->GetSimulation()));
 	debugInfo.push_back(new ElementPopulationDebug(0x2, gameModel->GetSimulation()));
@@ -107,10 +94,6 @@ GameController::~GameController()
 	if(renderOptions)
 	{
 		delete renderOptions;
-	}
-	if(console)
-	{
-		delete console;
 	}
 	if (options)
 	{
@@ -378,247 +361,38 @@ void GameController::CutRegion(ui::Point point1, ui::Point point2, bool includeP
 
 bool GameController::MouseMove(int x, int y, int dx, int dy)
 {
-	MouseMoveEvent ev(x, y, dx, dy);
-	return commandInterface->HandleEvent(LuaEvents::mousemove, &ev);
 }
 
 bool GameController::MouseDown(int x, int y, unsigned button)
 {
-	MouseDownEvent ev(x, y, button);
-	bool ret = commandInterface->HandleEvent(LuaEvents::mousedown, &ev);
-	if (ret && y<YRES && x<XRES && !gameView->GetPlacingSave() && !gameView->GetPlacingZoom())
-	{
-		ui::Point point = gameModel->AdjustZoomCoords(ui::Point(x, y));
-		x = point.X;
-		y = point.Y;
-		if (!gameModel->GetActiveTool(0) || gameModel->GetActiveTool(0)->GetIdentifier() != "DEFAULT_UI_SIGN" || button != SDL_BUTTON_LEFT) //If it's not a sign tool or you are right/middle clicking
-		{
-			foundSignID = GetSignAt(x, y);
-			if (foundSignID != -1)
-			{
-				sign foundSign = gameModel->GetSimulation()->signs[foundSignID];
-				if (sign::splitsign(foundSign.text))
-					return false;
-			}
-		}
-	}
-	return ret;
 }
 
 bool GameController::MouseUp(int x, int y, unsigned button, char type)
 {
-	MouseUpEvent ev(x, y, button, type);
-	bool ret = commandInterface->HandleEvent(LuaEvents::mouseup, &ev);
-	if (type)
-		return ret;
-	if (ret && foundSignID != -1 && y<YRES && x<XRES && !gameView->GetPlacingSave())
-	{
-		ui::Point point = gameModel->AdjustZoomCoords(ui::Point(x, y));
-		x = point.X;
-		y = point.Y;
-		if (!gameModel->GetActiveTool(0) || gameModel->GetActiveTool(0)->GetIdentifier() != "DEFAULT_UI_SIGN" || button != SDL_BUTTON_LEFT) //If it's not a sign tool or you are right/middle clicking
-		{
-			int foundSignID = GetSignAt(x, y);
-			if (foundSignID != -1)
-			{
-				sign foundSign = gameModel->GetSimulation()->signs[foundSignID];
-				String str = foundSign.text;
-				String::value_type type;
-				int pos = sign::splitsign(str, &type);
-				if (pos)
-				{
-					ret = false;
-					if (type == 'c' || type == 't' || type == 's')
-					{
-						String link = str.Substr(3, pos-3);
-						switch (type)
-						{
-						case 'c':
-						{
-							int saveID = link.ToNumber<int>(true);
-							if (saveID)
-								OpenSavePreview(saveID, 0, false);
-							break;
-						}
-						case 't':
-						{
-							// buff is already confirmed to be a number by sign::splitsign
-							Platform::OpenURI(ByteString::Build("http://powdertoy.co.uk/Discussions/Thread/View.html?Thread=", link.ToUtf8()));
-							break;
-						}
-						case 's':
-							OpenSearch(link);
-							break;
-						}
-					}
-					else if (type == 'b')
-					{
-						Simulation * sim = gameModel->GetSimulation();
-						sim->create_part(-1, foundSign.x, foundSign.y, PT_SPRK);
-					}
-				}
-			}
-		}
-	}
-	foundSignID = -1;
-	return ret;
 }
 
 bool GameController::MouseWheel(int x, int y, int d)
 {
-	MouseWheelEvent ev(x, y, d);
-	return commandInterface->HandleEvent(LuaEvents::mousewheel, &ev);
 }
 
 bool GameController::TextInput(String text)
 {
-	TextInputEvent ev(text);
-	return commandInterface->HandleEvent(LuaEvents::textinput, &ev);
 }
 
 bool GameController::KeyPress(int key, int scan, bool repeat, bool shift, bool ctrl, bool alt)
 {
-	KeyEvent ev(key, scan, repeat, shift, ctrl, alt);
-	bool ret = commandInterface->HandleEvent(LuaEvents::keypress, &ev);
-	if (repeat)
-		return ret;
-	if (ret)
-	{
-		Simulation * sim = gameModel->GetSimulation();
-		if (!gameView->GetPlacingSave())
-		{
-			// Go right command
-			if (key == SDLK_RIGHT)
-			{
-				sim->player.comm = (int)(sim->player.comm)|0x02;
-			}
-			// Go left command
-			if (key == SDLK_LEFT)
-			{
-				sim->player.comm = (int)(sim->player.comm)|0x01;
-			}
-			// Use element command
-			if (key == SDLK_DOWN && ((int)(sim->player.comm)&0x08)!=0x08)
-			{
-				sim->player.comm = (int)(sim->player.comm)|0x08;
-			}
-			// Jump command
-			if (key == SDLK_UP && ((int)(sim->player.comm)&0x04)!=0x04)
-			{
-				sim->player.comm = (int)(sim->player.comm)|0x04;
-			}
-		}
-
-		// Go right command
-		if (key == SDLK_d)
-		{
-			sim->player2.comm = (int)(sim->player2.comm)|0x02;
-		}
-		// Go left command
-		if (key == SDLK_a)
-		{
-			sim->player2.comm = (int)(sim->player2.comm)|0x01;
-		}
-		// Use element command
-		if (key == SDLK_s && ((int)(sim->player2.comm)&0x08)!=0x08)
-		{
-			sim->player2.comm = (int)(sim->player2.comm)|0x08;
-		}
-		// Jump command
-		if (key == SDLK_w && ((int)(sim->player2.comm)&0x04)!=0x04)
-		{
-			sim->player2.comm = (int)(sim->player2.comm)|0x04;
-		}
-
-		if (!sim->elementCount[PT_STKM2] || ctrl)
-		{
-			switch(key)
-			{
-			case 'w':
-				SwitchGravity();
-				break;
-			case 'd':
-				gameView->SetDebugHUD(!gameView->GetDebugHUD());
-				break;
-			case 's':
-				gameView->BeginStampSelection();
-				break;
-			}
-		}
-
-		for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; iter++)
-		{
-			if ((*iter)->debugID & debugFlags)
-				if (!(*iter)->KeyPress(key, scan, shift, ctrl, alt, gameView->GetMousePosition()))
-					ret = false;
-		}
-	}
-	return ret;
 }
 
 bool GameController::KeyRelease(int key, int scan, bool repeat, bool shift, bool ctrl, bool alt)
 {
-	KeyEvent ev(key, scan, repeat, shift, ctrl, alt);
-	bool ret = commandInterface->HandleEvent(LuaEvents::keyrelease, &ev);
-	if (repeat)
-		return ret;
-	if (ret)
-	{
-		Simulation * sim = gameModel->GetSimulation();
-		if (key == SDLK_RIGHT || key == SDLK_LEFT)
-		{
-			sim->player.pcomm = sim->player.comm;  //Saving last movement
-			sim->player.comm = (int)(sim->player.comm)&12;  //Stop command
-		}
-		if (key == SDLK_UP)
-		{
-			sim->player.comm = (int)(sim->player.comm)&11;
-		}
-		if (key == SDLK_DOWN)
-		{
-			sim->player.comm = (int)(sim->player.comm)&7;
-		}
-
-		if (key == SDLK_d || key == SDLK_a)
-		{
-			sim->player2.pcomm = sim->player2.comm;  //Saving last movement
-			sim->player2.comm = (int)(sim->player2.comm)&12;  //Stop command
-		}
-		if (key == SDLK_w)
-		{
-			sim->player2.comm = (int)(sim->player2.comm)&11;
-		}
-		if (key == SDLK_s)
-		{
-			sim->player2.comm = (int)(sim->player2.comm)&7;
-		}
-	}
-	return ret;
 }
 
 void GameController::Tick()
 {
-	if(firstTick)
-	{
-#ifdef LUACONSOLE
-		((LuaScriptInterface*)commandInterface)->Init();
-#endif
-		firstTick = false;
-	}
-	for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; iter++)
-	{
-		if ((*iter)->debugID & debugFlags)
-			(*iter)->Draw();
-	}
-	commandInterface->OnTick();
 }
 
 void GameController::Exit()
 {
-	CloseEvent ev;
-	commandInterface->HandleEvent(LuaEvents::close, &ev);
-	gameView->CloseActiveWindow();
-	HasDone = true;
 }
 
 void GameController::ResetAir()
@@ -988,21 +762,6 @@ void GameController::OpenOptions()
 	options = new OptionsController(gameModel, new OptionsCallback(this));
 	ui::Engine::Ref().ShowWindow(options->GetView());
 
-}
-
-void GameController::ShowConsole()
-{
-	if (!console)
-		console = new ConsoleController(NULL, commandInterface);
-	if (console->GetView() != ui::Engine::Ref().GetWindow())
-		ui::Engine::Ref().ShowWindow(console->GetView());
-}
-
-void GameController::HideConsole()
-{
-	if (!console)
-		return;
-	console->GetView()->CloseActiveWindow();
 }
 
 void GameController::OpenRenderOptions()

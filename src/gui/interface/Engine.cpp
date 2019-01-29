@@ -316,3 +316,31 @@ void Engine::onClose()
 	if (state_)
 		state_->DoExit();
 }
+
+inline bool Engine::Running() { return running_; }
+inline bool Engine::Broken() { return break_; }
+inline long unsigned int Engine::LastTick() { return lastTick; }
+inline void Engine::LastTick(long unsigned int tick) { lastTick = tick; }
+
+void Engine::SetFullscreen(bool fullscreen) { Fullscreen = fullscreen; }
+inline bool Engine::GetFullscreen() { return Fullscreen; }
+void Engine::SetAltFullscreen(bool altFullscreen) { this->altFullscreen = altFullscreen; }
+inline bool Engine::GetAltFullscreen() { return altFullscreen; }
+void Engine::SetScale(int scale) { Scale = scale; }
+inline int Engine::GetScale() { return Scale; }
+void Engine::SetResizable(bool resizable) { this->resizable = resizable; }
+inline bool Engine::GetResizable() { return resizable; }
+void Engine::SetFastQuit(bool fastquit) { FastQuit = fastquit; }
+inline bool Engine::GetFastQuit() {return FastQuit; }
+
+inline float Engine::GetFps() { return fps; }
+
+inline int Engine::GetMouseButton() { return mouseb_; }
+inline int Engine::GetMouseX() { return mousex_; }
+inline int Engine::GetMouseY() { return mousey_; }
+inline int Engine::GetWidth() { return width_; }
+inline int Engine::GetHeight() { return height_; }
+inline int Engine::GetMaxWidth() { return maxWidth; }
+inline int Engine::GetMaxHeight() { return maxHeight; }
+
+inline Window* Engine::GetWindow() { return state_; }
