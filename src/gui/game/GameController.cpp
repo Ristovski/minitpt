@@ -365,10 +365,81 @@ bool GameController::MouseMove(int x, int y, int dx, int dy)
 
 bool GameController::MouseDown(int x, int y, unsigned button)
 {
+	if (y<YRES && x<XRES && !gameView->GetPlacingSave() && !gameView->GetPlacingZoom())
+	{
+		ui::Point point = gameModel->AdjustZoomCoords(ui::Point(x, y));
+		x = point.X;
+		y = point.Y;
+		if (!gameModel->GetActiveTool(0) || gameModel->GetActiveTool(0)->GetIdentifier() != "DEFAULT_UI_SIGN" || button != SDL_BUTTON_LEFT) //If it's not a sign tool or you are right/middle clicking
+		{
+			foundSignID = GetSignAt(x, y);
+			if (foundSignID != -1)
+			{
+				sign foundSign = gameModel->GetSimulation()->signs[foundSignID];
+				if (sign::splitsign(foundSign.text))
+					return false;
+			}
+		}
+	}
+	return true;
 }
 
 bool GameController::MouseUp(int x, int y, unsigned button, char type)
 {
+	bool ret = true;
+	if (type)
+		return ret;
+	if (ret && foundSignID != -1 && y<YRES && x<XRES && !gameView->GetPlacingSave())
+	{
+		ui::Point point = gameModel->AdjustZoomCoords(ui::Point(x, y));
+		x = point.X;
+		y = point.Y;
+		if (!gameModel->GetActiveTool(0) || gameModel->GetActiveTool(0)->GetIdentifier() != "DEFAULT_UI_SIGN" || button != SDL_BUTTON_LEFT) //If it's not a sign tool or you are right/middle clicking
+		{
+			int foundSignID = GetSignAt(x, y);
+			if (foundSignID != -1)
+			{
+				sign foundSign = gameModel->GetSimulation()->signs[foundSignID];
+				String str = foundSign.text;
+				String::value_type type;
+				int pos = sign::splitsign(str, &type);
+				if (pos)
+				{
+					ret = false;
+					if (type == 'c' || type == 't' || type == 's')
+					{
+						String link = str.Substr(3, pos-3);
+						switch (type)
+						{
+							case 'c':
+								{
+									int saveID = link.ToNumber<int>(true);
+									if (saveID)
+										OpenSavePreview(saveID, 0, false);
+									break;
+								}
+							case 't':
+								{
+									// buff is already confirmed to be a number by sign::splitsign
+									Platform::OpenURI(ByteString::Build("http://powdertoy.co.uk/Discussions/Thread/View.html?Thread=", link.ToUtf8()));
+									break;
+								}
+							case 's':
+								OpenSearch(link);
+								break;
+						}
+					}
+					else if (type == 'b')
+					{
+						Simulation * sim = gameModel->GetSimulation();
+						sim->create_part(-1, foundSign.x, foundSign.y, PT_SPRK);
+					}
+				}
+			}
+		}
+	}
+	foundSignID = -1;
+	return ret;
 }
 
 bool GameController::MouseWheel(int x, int y, int d)
@@ -381,18 +452,130 @@ bool GameController::TextInput(String text)
 
 bool GameController::KeyPress(int key, int scan, bool repeat, bool shift, bool ctrl, bool alt)
 {
+	bool ret = true;
+	if (repeat)
+		return ret;
+	if (ret)
+	{
+		Simulation * sim = gameModel->GetSimulation();
+		if (!gameView->GetPlacingSave())
+		{
+			// Go right command
+			if (key == SDLK_RIGHT)
+			{
+				sim->player.comm = (int)(sim->player.comm)|0x02;
+			}
+			// Go left command
+			if (key == SDLK_LEFT)
+			{
+				sim->player.comm = (int)(sim->player.comm)|0x01;
+			}
+			// Use element command
+			if (key == SDLK_DOWN && ((int)(sim->player.comm)&0x08)!=0x08)
+			{
+				sim->player.comm = (int)(sim->player.comm)|0x08;
+			}
+			// Jump command
+			if (key == SDLK_UP && ((int)(sim->player.comm)&0x04)!=0x04)
+			{
+				sim->player.comm = (int)(sim->player.comm)|0x04;
+			}
+		}
+
+		// Go right command
+		if (key == SDLK_d)
+		{
+			sim->player2.comm = (int)(sim->player2.comm)|0x02;
+		}
+		// Go left command
+		if (key == SDLK_a)
+		{
+			sim->player2.comm = (int)(sim->player2.comm)|0x01;
+		}
+		// Use element command
+		if (key == SDLK_s && ((int)(sim->player2.comm)&0x08)!=0x08)
+		{
+			sim->player2.comm = (int)(sim->player2.comm)|0x08;
+		}
+		// Jump command
+		if (key == SDLK_w && ((int)(sim->player2.comm)&0x04)!=0x04)
+		{
+			sim->player2.comm = (int)(sim->player2.comm)|0x04;
+		}
+
+		if (!sim->elementCount[PT_STKM2] || ctrl)
+		{
+			switch(key)
+			{
+				case 'w':
+					SwitchGravity();
+					break;
+				case 'd':
+					gameView->SetDebugHUD(!gameView->GetDebugHUD());
+					break;
+				case 's':
+					gameView->BeginStampSelection();
+					break;
+			}
+		}
+
+		for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; iter++)
+		{
+			if ((*iter)->debugID & debugFlags)
+				if (!(*iter)->KeyPress(key, scan, shift, ctrl, alt, gameView->GetMousePosition()))
+					ret = false;
+		}
+	}
+	return ret;
 }
 
 bool GameController::KeyRelease(int key, int scan, bool repeat, bool shift, bool ctrl, bool alt)
 {
+	bool ret = true;
+	if (repeat)
+		return ret;
+	if (ret)
+	{
+		Simulation * sim = gameModel->GetSimulation();
+		if (key == SDLK_RIGHT || key == SDLK_LEFT)
+		{
+			sim->player.pcomm = sim->player.comm;  //Saving last movement
+			sim->player.comm = (int)(sim->player.comm)&12;  //Stop command
+		}
+		if (key == SDLK_UP)
+		{
+			sim->player.comm = (int)(sim->player.comm)&11;
+		}
+		if (key == SDLK_DOWN)
+		{
+			sim->player.comm = (int)(sim->player.comm)&7;
+		}
+
+		if (key == SDLK_d || key == SDLK_a)
+		{
+			sim->player2.pcomm = sim->player2.comm;  //Saving last movement
+			sim->player2.comm = (int)(sim->player2.comm)&12;  //Stop command
+		}
+		if (key == SDLK_w)
+		{
+			sim->player2.comm = (int)(sim->player2.comm)&11;
+		}
+		if (key == SDLK_s)
+		{
+			sim->player2.comm = (int)(sim->player2.comm)&7;
+		}
+	}
+	return ret;
 }
 
 void GameController::Tick()
 {
+	firstTick = false;
 }
 
 void GameController::Exit()
 {
+	HasDone = true;
 }
 
 void GameController::ResetAir()
