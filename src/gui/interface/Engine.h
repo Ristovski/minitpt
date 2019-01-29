@@ -35,39 +35,15 @@ namespace ui
 		void onClose();
 
 		void Begin(int width, int height);
-		inline bool Running();
-		inline bool Broken();
-		inline long unsigned int LastTick(); 
-		inline void LastTick(long unsigned int tick); 
 		void Exit();
 		void ConfirmExit();
 		void Break();
 		void UnBreak();
 
-		void SetFullscreen(bool fullscreen); 
-		inline bool GetFullscreen(); 
-		void SetAltFullscreen(bool altFullscreen); 
-		inline bool GetAltFullscreen(); 
-		void SetScale(int scale); 
-		inline int GetScale(); 
-		void SetResizable(bool resizable); 
-		inline bool GetResizable(); 
-		void SetFastQuit(bool fastquit); 
-		inline bool GetFastQuit(); 
-
 		void Tick();
 		void Draw();
 
 		void SetFps(float fps);
-		inline float GetFps(); 
-
-		inline int GetMouseButton(); 
-		inline int GetMouseX(); 
-		inline int GetMouseY(); 
-		inline int GetWidth(); 
-		inline int GetHeight(); 
-		inline int GetMaxWidth(); 
-		inline int GetMaxHeight(); 
 
 		void SetMaxSize(int width, int height);
 
@@ -75,13 +51,40 @@ namespace ui
 
 		//void SetState(Window* state);
 		//inline State* GetState() { return state_; }
-		inline Window* GetWindow(); 
 		float FpsLimit;
 		Graphics * g;
 		int Scale;
 		bool Fullscreen;
 
 		unsigned int FrameIndex;
+
+		inline bool Running() { return running_; }
+		inline bool Broken() { return break_; }
+		inline long unsigned int LastTick() { return lastTick; }
+		inline void LastTick(long unsigned int tick) { lastTick = tick; }
+
+		void SetFullscreen(bool fullscreen) { Fullscreen = fullscreen; }
+		inline bool GetFullscreen() { return Fullscreen; }
+		void SetAltFullscreen(bool altFullscreen) { this->altFullscreen = altFullscreen; }
+		inline bool GetAltFullscreen() { return altFullscreen; }
+		void SetScale(int scale) { Scale = scale; }
+		inline int GetScale() { return Scale; }
+		void SetResizable(bool resizable) { this->resizable = resizable; }
+		inline bool GetResizable() { return resizable; }
+		void SetFastQuit(bool fastquit) { FastQuit = fastquit; }
+		inline bool GetFastQuit() {return FastQuit; }
+
+		inline float GetFps() { return fps; }
+
+		inline int GetMouseButton() { return mouseb_; }
+		inline int GetMouseX() { return mousex_; }
+		inline int GetMouseY() { return mousey_; }
+		inline int GetWidth() { return width_; }
+		inline int GetHeight() { return height_; }
+		inline int GetMaxWidth() { return maxWidth; }
+		inline int GetMaxHeight() { return maxHeight; }
+
+		inline Window* GetWindow() { return state_; }
 	private:
 		bool altFullscreen;
 		bool resizable;
