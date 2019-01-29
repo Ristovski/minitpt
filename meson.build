@@ -1,4 +1,4 @@
-project('minitpt', 'cpp',
+project('minitpt', ['cpp','c'],
   version : '0.1',
   default_options : ['cpp_std=c++11'])
 
@@ -10,18 +10,19 @@ add_global_arguments(['-march=native', '-pipe', '-O2', features], language : 'cp
 
 # Ugly hack for now (well, not really) since Meson does not support wildcards (as to keep being "fast")
 # we can replace this later with a hardcoded list of source files
-sources = run_command('find', 'src', 'data', 'generated', '-type', 'f', '-name', '*.cpp').stdout().strip().split('\n')
+sources = run_command('find', 'src', 'data', 'generated', 'imgui', 'imgui/GL/', '-type', 'f', '-name', '*.c*').stdout().strip().split('\n')
 
-include_dirs = include_directories('data/', 'generated/', 'src/')
+include_dirs = include_directories('data/', 'generated/', 'src/', 'imgui/')
 
 # Find a way to better organize these, need some sort of automatic list generation, a Meson macro perhaps
 mdep = meson.get_compiler('cpp').find_library('m')
-# bz2bdep = meson.get_compiler('cpp').find_library('bz2')
-# zlibdep = meson.get_compiler('cpp').find_library('libz')
+dldep = meson.get_compiler('cpp').find_library('dl')
 fftwdep = meson.get_compiler('cpp').find_library('fftw3f')
 sdldep = meson.get_compiler('cpp').find_library('SDL2')
+glewdep = dependency('glew')
+glfwdep = meson.get_compiler('cpp').find_library('glfw')
 pthreaddep = meson.get_compiler('cpp').find_library('pthread')
 
-coredeps = [mdep, fftwdep, sdldep, pthreaddep]
+coredeps = [mdep, dldep, fftwdep, sdldep, glewdep, glfwdep, pthreaddep]
 
 executable('minitpt', sources, include_directories: include_dirs, dependencies: coredeps)
