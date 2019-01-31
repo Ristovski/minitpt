@@ -21,8 +21,6 @@
 
 
 GameModel::GameModel():
-	clipboard(NULL),
-	placeSave(NULL),
 	activeMenu(-1),
 	currentBrush(0),
 	currentFile(NULL),
@@ -91,8 +89,6 @@ GameModel::~GameModel()
 	}
 	delete sim;
 	delete ren;
-	delete placeSave;
-	delete clipboard;
 	delete currentFile;
 	delete redoHistory;
 	//if(activeTools)

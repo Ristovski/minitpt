@@ -136,7 +136,6 @@ public:
 	void ToggleNewtonianGravity();
 
 	bool LoadClipboard();
-	void LoadStamp(GameSave *stamp);
 
 	void RemoveNotification(Notification * notification);
 

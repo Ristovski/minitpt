@@ -126,18 +126,6 @@ GameController::~GameController()
 	}
 }
 
-void GameController::HistoryRestore()
-{
-}
-
-void GameController::HistorySnapshot()
-{
-}
-
-void GameController::HistoryForward()
-{
-}
-
 GameView * GameController::GetView()
 {
 	return gameView;
@@ -160,14 +148,6 @@ int GameController::GetSignAt(int x, int y)
 String GameController::GetSignText(int signID)
 {
 	return gameModel->GetSimulation()->signs[signID].text;
-}
-
-void GameController::PlaceSave(ui::Point position, bool includePressure)
-{
-}
-
-void GameController::Install()
-{
 }
 
 void GameController::AdjustGridSize(int direction)
@@ -323,18 +303,6 @@ void GameController::DrawPoints(int toolSelection, ui::Point oldPos, ui::Point n
 		activeTool->DrawLine(sim, cBrush, oldPos, newPos, true);
 }
 
-bool GameController::LoadClipboard()
-{
-}
-
-void GameController::TranslateSave(ui::Point point)
-{
-}
-
-void GameController::TransformSave(matrix2d transform)
-{
-}
-
 void GameController::ToolClick(int toolSelection, ui::Point point)
 {
 	Simulation * sim = gameModel->GetSimulation();
@@ -343,24 +311,6 @@ void GameController::ToolClick(int toolSelection, ui::Point point)
 	if(!activeTool || !cBrush)
 		return;
 	activeTool->Click(sim, cBrush, point);
-}
-
-ByteString GameController::StampRegion(ui::Point point1, ui::Point point2, bool includePressure)
-{
-}
-
-void GameController::CopyRegion(ui::Point point1, ui::Point point2, bool includePressure)
-{
-}
-
-void GameController::CutRegion(ui::Point point1, ui::Point point2, bool includePressure)
-{
-	CopyRegion(point1, point2, includePressure);
-	gameModel->GetSimulation()->clear_area(point1.X, point1.Y, point2.X-point1.X, point2.Y-point1.Y);
-}
-
-bool GameController::MouseMove(int x, int y, int dx, int dy)
-{
 }
 
 bool GameController::MouseDown(int x, int y, unsigned button)
@@ -413,9 +363,6 @@ bool GameController::MouseUp(int x, int y, unsigned button, char type)
 						{
 							case 'c':
 								{
-									int saveID = link.ToNumber<int>(true);
-									if (saveID)
-										OpenSavePreview(saveID, 0, false);
 									break;
 								}
 							case 't':
@@ -425,7 +372,6 @@ bool GameController::MouseUp(int x, int y, unsigned button, char type)
 									break;
 								}
 							case 's':
-								OpenSearch(link);
 								break;
 						}
 					}
@@ -440,14 +386,6 @@ bool GameController::MouseUp(int x, int y, unsigned button, char type)
 	}
 	foundSignID = -1;
 	return ret;
-}
-
-bool GameController::MouseWheel(int x, int y, int d)
-{
-}
-
-bool GameController::TextInput(String text)
-{
 }
 
 bool GameController::KeyPress(int key, int scan, bool repeat, bool shift, bool ctrl, bool alt)
@@ -879,30 +817,6 @@ void GameController::SetReplaceModeFlags(int flags)
 	gameModel->GetSimulation()->replaceModeFlags = flags;
 }
 
-void GameController::OpenSearch(String searchText)
-{
-}
-
-void GameController::OpenLocalSaveWindow(bool asCurrent)
-{
-}
-
-void GameController::OpenSavePreview(int saveID, int saveDate, bool instant)
-{
-}
-
-void GameController::OpenSavePreview()
-{
-}
-
-void GameController::OpenLocalBrowse()
-{
-}
-
-void GameController::OpenProfile()
-{
-}
-
 void GameController::OpenElementSearch()
 {
 	vector<Tool*> toolList;
@@ -936,10 +850,6 @@ void GameController::OpenColourPicker()
 	new ColourPickerActivity(gameModel->GetColourSelectorColour(), new ColourPickerCallback(this));
 }
 
-void GameController::OpenStamps()
-{
-}
-
 void GameController::OpenOptions()
 {
 	options = new OptionsController(gameModel, new OptionsCallback(this));
@@ -953,22 +863,10 @@ void GameController::OpenRenderOptions()
 	ui::Engine::Ref().ShowWindow(renderOptions->GetView());
 }
 
-void GameController::OpenSaveWindow()
-{
-}
-
-void GameController::SaveAsCurrent()
-{
-}
-
 void GameController::FrameStep()
 {
 	gameModel->FrameStep(1);
 	gameModel->SetPaused(true);
-}
-
-void GameController::Vote(int direction)
-{
 }
 
 void GameController::ChangeBrush()
@@ -978,12 +876,7 @@ void GameController::ChangeBrush()
 
 void GameController::ClearSim()
 {
-	HistorySnapshot();
 	gameModel->ClearSimulation();
-}
-
-void GameController::ReloadSim()
-{
 }
 
 ByteString GameController::ElementResolve(int type, int ctype)
@@ -1014,18 +907,4 @@ String GameController::WallName(int type)
 		return gameModel->GetSimulation()->wtypes[type].name;
 	else
 		return String();
-}
-
-int GameController::Record(bool record)
-{
-	return gameView->Record(record);
-}
-
-void GameController::RemoveNotification(Notification * notification)
-{
-	gameModel->RemoveNotification(notification);
-}
-
-void GameController::RunUpdater()
-{
 }

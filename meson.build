@@ -26,3 +26,7 @@ pthreaddep = meson.get_compiler('cpp').find_library('pthread')
 coredeps = [mdep, dldep, fftwdep, sdldep, glewdep, glfwdep, pthreaddep]
 
 executable('minitpt', sources, include_directories: include_dirs, dependencies: coredeps)
+
+# Cppcheck target
+run_target('cppcheck', command : ['cppcheck', '--enable=all', '--project=' + 
+  join_paths(meson.build_root(), 'compile_commands.json')]) 

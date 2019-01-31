@@ -144,10 +144,6 @@ void OptionsModel::SetFastQuit(bool fastquit)
 	notifySettingsChanged();
 }
 
-bool OptionsModel::GetShowAvatars()
-{
-}
-
 void OptionsModel::SetShowAvatars(bool state)
 {
 	notifySettingsChanged();

@@ -213,10 +213,6 @@ GameView::GameView():
 		SearchAction(GameView * _v) { v = _v; }
 		void ActionCallback(ui::Button * sender)
 		{
-			if(v->CtrlBehaviour())
-				v->c->OpenLocalBrowse();
-			else
-				v->c->OpenSearch("");
 		}
 	};
 
@@ -241,11 +237,9 @@ GameView::GameView():
 		ReloadAction(GameView * _v) { v = _v; }
 		void ActionCallback(ui::Button * sender)
 		{
-			v->c->ReloadSim();
 		}
 		void AltActionCallback(ui::Button * sender)
 		{
-			v->c->OpenSavePreview();
 		}
 	};
 	reloadButton = new ui::Button(ui::Point(currentX, Size.Y-16), ui::Point(17, 15), "", "Reload the simulation");
@@ -282,7 +276,6 @@ GameView::GameView():
 		UpVoteAction(GameView * _v) { v = _v; }
 		void ActionCallback(ui::Button * sender)
 		{
-			v->c->Vote(1);
 		}
 	};
 	upVoteButton = new ui::Button(ui::Point(currentX, Size.Y-16), ui::Point(39, 15), "", "Like this save");
@@ -300,7 +293,6 @@ GameView::GameView():
 		DownVoteAction(GameView * _v) { v = _v; }
 		void ActionCallback(ui::Button * sender)
 		{
-			v->c->Vote(-1);
 		}
 	};
 	downVoteButton = new ui::Button(ui::Point(currentX, Size.Y-16), ui::Point(15, 15), "", "Dislike this save");
@@ -904,10 +896,6 @@ void GameView::screenshot()
 	doScreenshot = true;
 }
 
-int GameView::Record(bool record)
-{
-}
-
 void GameView::updateToolButtonScroll()
 {
 	if(toolButtons.size())
@@ -1042,7 +1030,6 @@ void GameView::OnMouseDown(int x, int y, unsigned button)
 			UpdateDrawMode();
 
 			isMouseDown = true;
-			c->HistorySnapshot();
 			if (drawMode == DrawRect || drawMode == DrawLine)
 			{
 				drawPoint1 = c->PointTranslate(currentMouse);
@@ -1092,22 +1079,7 @@ void GameView::OnMouseUp(int x, int y, unsigned button)
 							thumbY = 0;
 						if (thumbY+(placeSaveThumb->Height) >= YRES)
 							thumbY = YRES-placeSaveThumb->Height;
-
-						c->PlaceSave(ui::Point(thumbX, thumbY), !shiftBehaviour);
 					}
-				}
-				else
-				{
-					int x2 = (selectPoint1.X>selectPoint2.X) ? selectPoint1.X : selectPoint2.X;
-					int y2 = (selectPoint1.Y>selectPoint2.Y) ? selectPoint1.Y : selectPoint2.Y;
-					int x1 = (selectPoint2.X<selectPoint1.X) ? selectPoint2.X : selectPoint1.X;
-					int y1 = (selectPoint2.Y<selectPoint1.Y) ? selectPoint2.Y : selectPoint1.Y;
-					if (selectMode ==SelectCopy)
-						c->CopyRegion(ui::Point(x1, y1), ui::Point(x2, y2), !shiftBehaviour);
-					else if (selectMode == SelectCut)
-						c->CutRegion(ui::Point(x1, y1), ui::Point(x2, y2), !shiftBehaviour);
-					else if (selectMode == SelectStamp)
-						c->StampRegion(ui::Point(x1, y1), ui::Point(x2, y2), !shiftBehaviour);
 				}
 			}
 			selectMode = SelectNone;
@@ -1227,35 +1199,14 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 			switch (key)
 			{
 			case SDLK_RIGHT:
-				c->TranslateSave(ui::Point(1, 0));
 				return;
 			case SDLK_LEFT:
-				c->TranslateSave(ui::Point(-1, 0));
 				return;
 			case SDLK_UP:
-				c->TranslateSave(ui::Point(0, -1));
 				return;
 			case SDLK_DOWN:
-				c->TranslateSave(ui::Point(0, 1));
 				return;
 			case 'r':
-				if (repeat)
-					return;
-				if (ctrl && shift)
-				{
-					//Vertical flip
-					c->TransformSave(m2d_new(1,0,0,-1));
-				}
-				else if (!ctrl && shift)
-				{
-					//Horizontal flip
-					c->TransformSave(m2d_new(-1,0,0,1));
-				}
-				else
-				{
-					//Rotate 90deg
-					c->TransformSave(m2d_new(0,1,-1,0));
-				}
 				return;
 			}
 		}
@@ -1289,10 +1240,6 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 			break;
 		if (ctrl && !isMouseDown)
 		{
-			if (shift)
-				c->HistoryForward();
-			else
-				c->HistoryRestore();
 		}
 		else
 		{
@@ -1320,13 +1267,10 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 		SetDebugHUD(!GetDebugHUD());
 		break;
 	case SDLK_F5:
-		c->ReloadSim();
 		break;
 	case 'a':
 		break;
 	case 'r':
-		if (ctrl)
-			c->ReloadSim();
 		break;
 	case 'e':
 		c->OpenElementSearch();
@@ -1384,7 +1328,6 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 	case 'y':
 		if (ctrl)
 		{
-			c->HistoryForward();
 		}
 		else
 		{
@@ -1428,23 +1371,12 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 		}
 		break;
 	case 'v':
-		if (ctrl)
-		{
-			if (c->LoadClipboard())
-			{
-				selectPoint1 = selectPoint2 = mousePosition;
-				isMouseDown = false;
-			}
-		}
 		break;
 	case 'l':
 	{
 		break;
 	}
 	case 'k':
-		selectMode = SelectNone;
-		selectPoint1 = selectPoint2 = ui::Point(-1, -1);
-		c->OpenStamps();
 		break;
 	case ']':
 		if(zoomEnabled && !zoomCursorFixed)
@@ -1459,9 +1391,7 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 			c->AdjustBrushSize(-1, !alt, shiftBehaviour, ctrlBehaviour);
 		break;
 	case 'i':
-		if(ctrl)
-			c->Install();
-		else
+		if(!ctrl)
 			c->InvertAirSim();
 		break;
 	case ';':
@@ -1631,8 +1561,7 @@ void GameView::OnTick(float dt)
 
 void GameView::DoMouseMove(int x, int y, int dx, int dy)
 {
-	if(c->MouseMove(x, y, dx, dy))
-		Window::DoMouseMove(x, y, dx, dy);
+	Window::DoMouseMove(x, y, dx, dy);
 }
 
 void GameView::DoMouseDown(int x, int y, unsigned button)
@@ -1651,14 +1580,10 @@ void GameView::DoMouseUp(int x, int y, unsigned button)
 
 void GameView::DoMouseWheel(int x, int y, int d)
 {
-	if(c->MouseWheel(x, y, d))
-		Window::DoMouseWheel(x, y, d);
 }
 
 void GameView::DoTextInput(String text)
 {
-	if (c->TextInput(text))
-		Window::DoTextInput(text);
 }
 
 void GameView::DoKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl, bool alt)
@@ -1695,7 +1620,6 @@ void GameView::NotifyNotificationsChanged(GameModel * sender)
 		void ActionCallback(ui::Button * sender)
 		{
 			notification->Action();
-			//v->c->RemoveNotification(notification);
 		}
 	};
 	class CloseNotificationButtonAction : public ui::ButtonAction
@@ -1706,11 +1630,9 @@ void GameView::NotifyNotificationsChanged(GameModel * sender)
 		CloseNotificationButtonAction(GameView * v, Notification * notification) : v(v), notification(notification) { }
 		void ActionCallback(ui::Button * sender)
 		{
-			v->c->RemoveNotification(notification);
 		}
 		void AltActionCallback(ui::Button * sender)
 		{
-			v->c->RemoveNotification(notification);
 		}
 	};
 

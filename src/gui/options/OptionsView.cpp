@@ -319,7 +319,6 @@ void OptionsView::NotifySettingsChanged(OptionsModel * sender)
 	fullscreen->SetChecked(sender->GetFullscreen());
 	altFullscreen->SetChecked(sender->GetAltFullscreen());
 	fastquit->SetChecked(sender->GetFastQuit());
-	showAvatars->SetChecked(sender->GetShowAvatars());
 }
 
 void OptionsView::AttachController(OptionsController * c_)
