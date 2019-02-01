@@ -344,7 +344,7 @@ int Element_SPRK::update(UPDATE_FUNC_ARGS)
 					parts[ID(r)].life = 4;
 					parts[ID(r)].ctype = receiver;
 					sim->part_change_type(ID(r),x+rx,y+ry,PT_SPRK);
-					if (parts[ID(r)].temp+10.0f<673.0f&&!sim->legacy_enable&&(receiver==PT_METL||receiver==PT_BMTL||receiver==PT_BRMT||receiver==PT_PSCN||receiver==PT_NSCN||receiver==PT_ETRD||receiver==PT_NBLE||receiver==PT_IRON))
+					if (parts[ID(r)].temp+10.0f<673.0f&&(receiver==PT_METL||receiver==PT_BMTL||receiver==PT_BRMT||receiver==PT_PSCN||receiver==PT_NSCN||receiver==PT_ETRD||receiver==PT_NBLE||receiver==PT_IRON))
 						parts[ID(r)].temp = parts[ID(r)].temp+10.0f;
 				}
 				else if (!parts[ID(r)].life && sender==PT_ETRD && parts[i].life==5) //ETRD is odd and conducts to others only at life 5, this could probably be somewhere else

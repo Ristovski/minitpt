@@ -167,8 +167,6 @@ int Element_FIRE::update(UPDATE_FUNC_ARGS)
 						sim->pv[y/CELL][x/CELL] += 0.25f * CFDS;
 				}
 			}
-	if (sim->legacy_enable && t!=PT_SPRK) // SPRK has no legacy reactions
-		updateLegacy(UPDATE_FUNC_SUBCALL_ARGS);
 	return 0;
 }
 

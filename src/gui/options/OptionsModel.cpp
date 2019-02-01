@@ -16,12 +16,11 @@ void OptionsModel::AddObserver(OptionsView* view)
 
 bool OptionsModel::GetHeatSimulation()
 {
-	return sim->legacy_enable?false:true;
+	return true;
 }
 
 void OptionsModel::SetHeatSimulation(bool state)
 {
-	sim->legacy_enable = state?0:1;
 	notifySettingsChanged();
 }
 

@@ -18,7 +18,6 @@ using namespace std;
 
 class GameView;
 class GameController;
-class SaveFile;
 class Simulation;
 class Renderer;
 
@@ -53,7 +52,6 @@ private:
 	int activeMenu;
 	int currentBrush;
 	vector<Brush *> brushList;
-	SaveFile * currentFile;
 	Tool * lastTool;
 	Tool ** activeTools;
 	Tool * decoToolset[4];
@@ -154,7 +152,6 @@ public:
 	void SetBrushID(int i);
 
 	void SetVote(int direction);
-	void SetSaveFile(SaveFile * newSave);
 	void AddObserver(GameView * observer);
 
 	bool GetPaused();

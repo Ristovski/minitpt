@@ -23,7 +23,6 @@
 GameModel::GameModel():
 	activeMenu(-1),
 	currentBrush(0),
-	currentFile(NULL),
 	toolStrength(1.0f),
 	redoHistory(NULL),
 	historyPosition(0),
@@ -89,7 +88,6 @@ GameModel::~GameModel()
 	}
 	delete sim;
 	delete ren;
-	delete currentFile;
 	delete redoHistory;
 	//if(activeTools)
 	//	delete[] activeTools;
@@ -471,10 +469,6 @@ vector<Menu*> GameModel::GetMenuList()
 	return menuList;
 }
 
-void GameModel::SetSaveFile(SaveFile * newSave)
-{
-}
-
 Simulation * GameModel::GetSimulation()
 {
 	return sim;
@@ -746,7 +740,6 @@ void GameModel::ClearSimulation()
 	//Load defaults
 	sim->gravityMode = 0;
 	sim->air->airMode = 0;
-	sim->legacy_enable = false;
 	sim->water_equal_test = false;
 	sim->SetEdgeMode(edgeMode);
 

@@ -65,7 +65,7 @@ int Element_SLTW::update(UPDATE_FUNC_ARGS)
 					break;
 				case PT_RBDM:
 				case PT_LRBD:
-					if ((sim->legacy_enable||parts[i].temp>(273.15f+12.0f)) && RNG::Ref().chance(1, 100))
+					if ((parts[i].temp>(273.15f+12.0f)) && RNG::Ref().chance(1, 100))
 					{
 						sim->part_change_type(i,x,y,PT_FIRE);
 						parts[i].life = 4;
