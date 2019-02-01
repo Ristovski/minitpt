@@ -3229,7 +3229,7 @@ void Simulation::UpdateParticles(int start, int end)
 			          (bmap[y/CELL][x/CELL]==WL_ALLOWGAS && !(elements[t].Properties&TYPE_GAS)) || //&& elements[t].Falldown!=0 && parts[i].type!=PT_FIRE && parts[i].type!=PT_SMKE && parts[i].type!=PT_CFLM) ||
 			          (bmap[y/CELL][x/CELL]==WL_ALLOWENERGY && !(elements[t].Properties&TYPE_ENERGY)) ||
 					  (bmap[y/CELL][x/CELL]==WL_DETECT && (t==PT_METL || t==PT_SPRK)) ||
-			          (bmap[y/CELL][x/CELL]==WL_EWALL && !emap[y/CELL][x/CELL])) && (t!=PT_STKM) && (t!=PT_STKM2) && (t!=PT_FIGH)))
+			          (bmap[y/CELL][x/CELL]==WL_EWALL && !emap[y/CELL][x/CELL]))))
 			{
 				kill_part(i);
 				continue;
@@ -3296,13 +3296,7 @@ void Simulation::UpdateParticles(int start, int end)
 					break;
 				}
 				//Get some gravity from the gravity map
-				if (t==PT_ANAR)
-				{
-					// perhaps we should have a ptypes variable for this
-					pGravX -= gravx[(y/CELL)*(XRES/CELL)+(x/CELL)];
-					pGravY -= gravy[(y/CELL)*(XRES/CELL)+(x/CELL)];
-				}
-				else if(t!=PT_STKM && t!=PT_STKM2 && t!=PT_FIGH && !(elements[t].Properties & TYPE_SOLID))
+				if(!(elements[t].Properties & TYPE_SOLID))
 				{
 					pGravX += gravx[(y/CELL)*(XRES/CELL)+(x/CELL)];
 					pGravY += gravy[(y/CELL)*(XRES/CELL)+(x/CELL)];
@@ -3311,7 +3305,7 @@ void Simulation::UpdateParticles(int start, int end)
 			else
 				pGravX = pGravY = 0;
 			//velocity updates for the particle
-			if (t != PT_SPNG || !(parts[i].flags&FLAG_MOVABLE))
+			if (!(parts[i].flags&FLAG_MOVABLE))
 			{
 				parts[i].vx *= elements[t].Loss;
 				parts[i].vy *= elements[t].Loss;
@@ -3342,11 +3336,7 @@ void Simulation::UpdateParticles(int start, int end)
 					}
 				}
 
-			float gel_scale = 1.0f;
-			if (t==PT_GEL)
-				gel_scale = parts[i].tmp*2.55f;
-
-			if (y-2 >= 0 && y-2 < YRES && (elements[t].Properties&TYPE_LIQUID) && (t!=PT_GEL || gel_scale > (1 + RNG::Ref().between(0, 254)))) {//some heat convection for liquids
+			if (y-2 >= 0 && y-2 < YRES && (elements[t].Properties&TYPE_LIQUID) && (t!=PT_GEL)) {//some heat convection for liquids
 				r = pmap[y-2][x];
 				if (!(!r || parts[i].type != TYP(r))) {
 					if (parts[i].temp>parts[ID(r)].temp) {
@@ -3359,7 +3349,7 @@ void Simulation::UpdateParticles(int start, int end)
 
 			//heat transfer code
 			h_count = 0;
-			if (t && (t!=PT_HSWC||parts[i].life==10) && RNG::Ref().chance(elements[t].HeatConduct*gel_scale, 250))
+			if (t && (t!=PT_HSWC||parts[i].life==10) && RNG::Ref().chance(elements[t].HeatConduct, 250))
 			{
 				if (aheat_enable && !(elements[t].Properties&PROP_NOAMBHEAT))
 				{
@@ -3486,7 +3476,7 @@ void Simulation::UpdateParticles(int start, int end)
 					}
 					else if (t == PT_LAVA)
 					{
-						if (parts[i].ctype>0 && parts[i].ctype<PT_NUM && parts[i].ctype!=PT_LAVA && parts[i].ctype!=PT_LAVA && elements[parts[i].ctype].Enabled)
+						if (parts[i].ctype>0 && parts[i].ctype<PT_NUM && parts[i].ctype!=PT_LAVA && elements[parts[i].ctype].Enabled)
 						{
 							if (parts[i].ctype==PT_THRM&&pt>=elements[PT_BMTL].HighTemperature)
 								s = 0;
@@ -3707,20 +3697,7 @@ void Simulation::UpdateParticles(int start, int end)
 			}
 
 			//call the particle update function, if there is one
-#if !defined(RENDERER) && defined(LUACONSOLE)
-			if (lua_el_mode[parts[i].type] == 3)
-			{
-				if (luacon_elementReplacement(this, i, x, y, surround_space, nt, parts, pmap) || t != parts[i].type)
-					continue;
-				// Need to update variables, in case they've been changed by Lua
-				x = (int)(parts[i].x+0.5f);
-				y = (int)(parts[i].y+0.5f);
-			}
-
-			if (elements[t].Update && lua_el_mode[t] != 2)
-#else
 			if (elements[t].Update)
-#endif
 			{
 				if ((*(elements[t].Update))(this, i, x, y, surround_space, nt, parts, pmap))
 					continue;
@@ -3731,16 +3708,6 @@ void Simulation::UpdateParticles(int start, int end)
 					y = (int)(parts[i].y+0.5f);
 				}
 			}
-#if !defined(RENDERER) && defined(LUACONSOLE)
-			if (lua_el_mode[parts[i].type] && lua_el_mode[parts[i].type] != 3)
-			{
-				if (luacon_elementReplacement(this, i, x, y, surround_space, nt, parts, pmap) || t != parts[i].type)
-					continue;
-				// Need to update variables, in case they've been changed by Lua
-				x = (int)(parts[i].x+0.5f);
-				y = (int)(parts[i].y+0.5f);
-			}
-#endif
 
 killed:
 			if (parts[i].type == PT_NONE)//if its dead, skip to next particle
@@ -3840,70 +3807,7 @@ killed:
 			stagnant = parts[i].flags & FLAG_STAGNANT;
 			parts[i].flags &= ~FLAG_STAGNANT;
 
-			if (t==PT_STKM || t==PT_STKM2 || t==PT_FIGH)
-			{
-				//head movement, let head pass through anything
-				parts[i].x += parts[i].vx;
-				parts[i].y += parts[i].vy;
-				int nx = (int)((float)parts[i].x+0.5f);
-				int ny = (int)((float)parts[i].y+0.5f);
-				if (edgeMode == 2)
-				{
-					bool x_ok = (nx >= CELL && nx < XRES-CELL);
-					bool y_ok = (ny >= CELL && ny < YRES-CELL);
-					int oldnx = nx, oldny = ny;
-					if (!x_ok)
-					{
-						parts[i].x = remainder_p(parts[i].x-CELL+.5f, XRES-CELL*2.0f)+CELL-.5f;
-						nx = (int)((float)parts[i].x+0.5f);
-					}
-					if (!y_ok)
-					{
-						parts[i].y = remainder_p(parts[i].y-CELL+.5f, YRES-CELL*2.0f)+CELL-.5f;
-						ny = (int)((float)parts[i].y+0.5f);
-					}
-
-					if (!x_ok || !y_ok) //when moving from left to right stickmen might be able to fall through solid things, fix with "eval_move(t, nx+diffx, ny+diffy, NULL)" but then they die instead
-					{
-						//adjust stickmen legs
-						playerst* stickman = NULL;
-						int t = parts[i].type;
-						if (t == PT_STKM)
-							stickman = &player;
-						else if (t == PT_STKM2)
-							stickman = &player2;
-						else if (t == PT_FIGH && parts[i].tmp >= 0 && parts[i].tmp < MAX_FIGHTERS)
-							stickman = &fighters[parts[i].tmp];
-
-						if (stickman)
-							for (int i = 0; i < 16; i+=2)
-							{
-								stickman->legs[i] += (nx-oldnx);
-								stickman->legs[i+1] += (ny-oldny);
-								stickman->accs[i/2] *= .95f;
-							}
-						parts[i].vy *= .95f;
-						parts[i].vx *= .95f;
-					}
-				}
-				if (ny!=y || nx!=x)
-				{
-					if (ID(pmap[y][x]) == i)
-						pmap[y][x] = 0;
-					else if (ID(photons[y][x]) == i)
-						photons[y][x] = 0;
-					if (nx<CELL || nx>=XRES-CELL || ny<CELL || ny>=YRES-CELL)
-					{
-						kill_part(i);
-						continue;
-					}
-					if (elements[t].Properties & TYPE_ENERGY)
-						photons[ny][nx] = PMAP(i, t);
-					else if (t)
-						pmap[ny][nx] = PMAP(i, t);
-				}
-			}
-			else if (elements[t].Properties & TYPE_ENERGY)
+			if (elements[t].Properties & TYPE_ENERGY)
 			{
 				if (t == PT_PHOT)
 				{
@@ -4058,12 +3962,6 @@ killed:
 			}
 			else
 			{
-				// Checking stagnant is cool, but then it doesn't update when you change it later.
-				if (water_equal_test && elements[t].Falldown == 2 && RNG::Ref().chance(1, 200))
-				{
-					if (!flood_water(x,y,i,y, parts[i].flags&FLAG_WATEREQUAL))
-						goto movedone;
-				}
 				// liquids and powders
 				if (!do_move(i, x, y, fin_xf, fin_yf))
 				{
@@ -4100,7 +3998,7 @@ killed:
 							{
 								parts[i].vx *= elements[t].Collision;
 								parts[i].vy *= elements[t].Collision;
-								goto movedone;
+								continue;
 							}
 							swappage = dx;
 							dx = dy*r;
@@ -4109,7 +4007,7 @@ killed:
 							{
 								parts[i].vx *= elements[t].Collision;
 								parts[i].vy *= elements[t].Collision;
-								goto movedone;
+								continue;
 							}
 						}
 						if (elements[t].Falldown>1 && !grav->ngrav_enable && gravityMode==0 && parts[i].vy>fabsf(parts[i].vx))
@@ -4310,7 +4208,6 @@ killed:
 					}
 				}
 			}
-movedone:
 			continue;
 		}
 
@@ -4786,12 +4683,6 @@ void Simulation::BeforeSim()
 			}
 			ISWIRE--;
 		}
-
-		// spawn STKM and STK2
-		if (!player.spwn && player.spawnID >= 0)
-			create_part(-1, (int)parts[player.spawnID].x, (int)parts[player.spawnID].y, PT_STKM);
-		else if (!player2.spwn && player2.spawnID >= 0)
-			create_part(-1, (int)parts[player2.spawnID].x, (int)parts[player2.spawnID].y, PT_STKM2);
 
 		// particle update happens right after this function (called separately)
 	}
