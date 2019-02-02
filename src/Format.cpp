@@ -122,14 +122,6 @@ String format::CleanString(String dirtyString, bool ascii, bool color, bool newl
 	return dirtyString;
 }
 
-std::vector<char> format::VideoBufferToPTI(const VideoBuffer & vidBuf)
-{
-}
-
-VideoBuffer * format::PTIToVideoBuffer(std::vector<char> & data)
-{
-}
-
 std::vector<char> format::VideoBufferToBMP(const VideoBuffer & vidBuf)
 {
 	std::vector<char> data;
@@ -240,10 +232,6 @@ struct PNGChunk
 		delete[] Data;
 	}
 };
-
-std::vector<char> format::VideoBufferToPNG(const VideoBuffer & vidBuf)
-{
-}
 
 //CRC functions, copypasta from W3 PNG spec.
 
