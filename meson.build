@@ -4,7 +4,7 @@ project('minitpt', ['cpp','c'],
 
 # Hardcoded for now, we can use fancy Meson options for toggling "features" later
 features = ['-DSDL_INC', '-DLIN', '-DGRAVFFT', '-D_REENTRANT', '-D_64BIT', '-DDEBUG', '-DX86', '-DX86_SSE', '-DX86_SSE2', '-DX86_SSE3',
-			'-ftree-vectorize', '-funsafe-math-optimizations', '-ffast-math', '-fomit-frame-pointer', '-funsafe-loop-optimizations']
+			'-ftree-vectorize', '-funsafe-math-optimizations', '-ffast-math', '-fomit-frame-pointer', '-funsafe-loop-optimizations', '-Wno-invalid-offsetof']
 
 add_global_arguments(['-march=native', '-pipe', '-O2', features], language : 'cpp')
 
