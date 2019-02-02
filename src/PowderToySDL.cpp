@@ -24,6 +24,7 @@
 #endif
 #include <signal.h>
 #include <stdexcept>
+#include <cassert>
 
 #ifndef WIN
 #include <unistd.h>
@@ -546,7 +547,7 @@ int main(int argc, char * argv[])
 #ifdef WIN
 		_chdir(arguments["ddir"].c_str());
 #else
-		chdir(arguments["ddir"].c_str());
+		assert(chdir(arguments["ddir"].c_str()));
 #endif
 
 	scale = 1;

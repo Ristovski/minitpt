@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cassert>
 #ifdef WIN
 #include <direct.h>
 #define getcwd _getcwd
@@ -275,7 +276,7 @@ OptionsView::OptionsView():
 #endif
 			char* workingDirectory = new char[FILENAME_MAX+strlen(openCommand)];
 			sprintf(workingDirectory, "%s\"%s\"", openCommand, getcwd(NULL, 0));
-			system(workingDirectory);
+			assert(system(workingDirectory));
 			delete[] workingDirectory;
 		}
 	};
