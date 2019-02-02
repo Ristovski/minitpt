@@ -28,7 +28,7 @@ public:
 	void SetOption(String option);
 	void AddOption(std::pair<String, int> option);
 	void RemoveOption(String option);
-	void SetOptions(std::vector<std::pair<String, int> > options);
+	void SetOptions(const std::vector<std::pair<String, int> > &options);
 	void SetActionCallback(DropDownAction * action) { callback = action;}
 	virtual void Draw(const Point& screenPos);
 	virtual void OnMouseClick(int x, int y, unsigned int button);

@@ -126,7 +126,7 @@ public:
 
 	std::deque<Snapshot*> GetHistory();
 	unsigned int GetHistoryPosition();
-	void SetHistory(std::deque<Snapshot*> newHistory);
+	void SetHistory(const std::deque<Snapshot*> &newHistory);
 	void SetHistoryPosition(unsigned int newHistoryPosition);
 	Snapshot * GetRedoHistory();
 	void SetRedoHistory(Snapshot * redo);

@@ -185,7 +185,7 @@ void DropDown::OnMouseLeave(int x, int y)
 			}
 		}
 	}
-	void DropDown::SetOptions(std::vector<std::pair<String, int> > options)
+	void DropDown::SetOptions(const std::vector<std::pair<String, int> > &options)
 	{
 		this->options = options;
 	}

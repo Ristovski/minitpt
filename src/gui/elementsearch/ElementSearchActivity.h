@@ -14,7 +14,7 @@ class ElementSearchActivity: public WindowActivity
 {
 	Tool * firstResult;
 	GameController * gameController;
-	std::vector<Tool*> tools;
+	const std::vector<Tool*> &tools;
 	ui::Textbox * searchField;
 	std::vector<ToolButton*> toolButtons;
 	String toolTip;
@@ -29,7 +29,7 @@ public:
 	class ToolAction;
 	bool exit;
 	Tool * GetFirstResult() { return firstResult; }
-	ElementSearchActivity(GameController * gameController, std::vector<Tool*> tools);
+	ElementSearchActivity(GameController * gameController, const std::vector<Tool*> &tools);
 	void SetActiveTool(int selectionState, Tool * tool);
 	virtual ~ElementSearchActivity();
 	virtual void OnTick(float dt);

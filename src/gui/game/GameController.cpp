@@ -99,7 +99,7 @@ GameController::~GameController()
 	{
 		delete options;
 	}
-	for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; iter++)
+	for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; ++iter)
 	{
 		delete *iter;
 	}
@@ -457,7 +457,7 @@ bool GameController::KeyPress(int key, int scan, bool repeat, bool shift, bool c
 			}
 		}
 
-		for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; iter++)
+		for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; ++iter)
 		{
 			if ((*iter)->debugID & debugFlags)
 				if (!(*iter)->KeyPress(key, scan, shift, ctrl, alt, gameView->GetMousePosition()))

@@ -313,7 +313,7 @@ unsigned int GameModel::GetHistoryPosition()
 	return historyPosition;
 }
 
-void GameModel::SetHistory(std::deque<Snapshot*> newHistory)
+void GameModel::SetHistory(const std::deque<Snapshot*> &newHistory)
 {
 	history = newHistory;
 }

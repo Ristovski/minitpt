@@ -2858,7 +2858,7 @@ void Renderer::RemoveRenderMode(unsigned int mode)
 	CompileRenderMode();
 }
 
-void Renderer::SetRenderMode(std::vector<unsigned int> render)
+void Renderer::SetRenderMode(const std::vector<unsigned int> &render)
 {
 	render_modes = render;
 	CompileRenderMode();
@@ -2911,7 +2911,7 @@ void Renderer::RemoveDisplayMode(unsigned int mode)
 	CompileDisplayMode();
 }
 
-void Renderer::SetDisplayMode(std::vector<unsigned int> display)
+void Renderer::SetDisplayMode(const std::vector<unsigned int> &display)
 {
 	display_modes = display;
 	CompileDisplayMode();
