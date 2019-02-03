@@ -106,6 +106,5 @@ public:
 	}
 	virtual void perform()
 	{
-		c->ShowConsole();
 	}
 };

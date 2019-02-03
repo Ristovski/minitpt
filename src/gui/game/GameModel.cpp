@@ -9,7 +9,6 @@
 #include "GameModelException.h"
 #include "Format.h"
 
-#include "client/Client.h"
 #include "common/tpt-minmax.h"
 #include "graphics/Renderer.h"
 #include "simulation/Air.h"
@@ -22,11 +21,8 @@
 
 
 GameModel::GameModel():
-	clipboard(NULL),
-	placeSave(NULL),
 	activeMenu(-1),
 	currentBrush(0),
-	currentFile(NULL),
 	toolStrength(1.0f),
 	redoHistory(NULL),
 	historyPosition(0),
@@ -62,25 +58,6 @@ GameModel::GameModel():
 	brushList.push_back(new Brush(ui::Point(4, 4)));
 	brushList.push_back(new TriangleBrush(ui::Point(4, 4)));
 
-	//Load more from brushes folder
-	std::vector<ByteString> brushFiles = Client::Ref().DirectorySearch(BRUSH_DIR, "", ".ptb");
-	for (size_t i = 0; i < brushFiles.size(); i++)
-	{
-		std::vector<unsigned char> brushData = Client::Ref().ReadFile(brushFiles[i]);
-		if(!brushData.size())
-		{
-			std::cout << "Brushes: Skipping " << brushFiles[i] << ". Could not open" << std::endl;
-			continue;
-		}
-		size_t dimension = std::sqrt((float)brushData.size());
-		if (dimension * dimension != brushData.size())
-		{
-			std::cout << "Brushes: Skipping " << brushFiles[i] << ". Invalid bitmap size" << std::endl;
-			continue;
-		}
-		brushList.push_back(new BitmapBrush(brushData, ui::Point(dimension, dimension)));
-	}
-
 	colourPresets.push_back(ui::Colour(255, 255, 255));
 	colourPresets.push_back(ui::Colour(0, 255, 255));
 	colourPresets.push_back(ui::Colour(255, 0, 255));
@@ -111,9 +88,6 @@ GameModel::~GameModel()
 	}
 	delete sim;
 	delete ren;
-	delete placeSave;
-	delete clipboard;
-	delete currentFile;
 	delete redoHistory;
 	//if(activeTools)
 	//	delete[] activeTools;
@@ -339,7 +313,7 @@ unsigned int GameModel::GetHistoryPosition()
 	return historyPosition;
 }
 
-void GameModel::SetHistory(std::deque<Snapshot*> newHistory)
+void GameModel::SetHistory(const std::deque<Snapshot*> &newHistory)
 {
 	history = newHistory;
 }
@@ -493,10 +467,6 @@ vector<QuickOption*> GameModel::GetQuickOptions()
 vector<Menu*> GameModel::GetMenuList()
 {
 	return menuList;
-}
-
-void GameModel::SetSaveFile(SaveFile * newSave)
-{
 }
 
 Simulation * GameModel::GetSimulation()
@@ -770,7 +740,6 @@ void GameModel::ClearSimulation()
 	//Load defaults
 	sim->gravityMode = 0;
 	sim->air->airMode = 0;
-	sim->legacy_enable = false;
 	sim->water_equal_test = false;
 	sim->SetEdgeMode(edgeMode);
 

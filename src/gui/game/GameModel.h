@@ -18,7 +18,6 @@ using namespace std;
 
 class GameView;
 class GameController;
-class SaveFile;
 class Simulation;
 class Renderer;
 
@@ -37,8 +36,6 @@ private:
 	vector<Notification*> notifications;
 	//int clipboardSize;
 	//unsigned char * clipboardData;
-	GameSave * clipboard;
-	GameSave * placeSave;
 	deque<String> consoleLog;
 	vector<GameView*> observers;
 	vector<Tool*> toolList;
@@ -55,7 +52,6 @@ private:
 	int activeMenu;
 	int currentBrush;
 	vector<Brush *> brushList;
-	SaveFile * currentFile;
 	Tool * lastTool;
 	Tool ** activeTools;
 	Tool * decoToolset[4];
@@ -130,7 +126,7 @@ public:
 
 	std::deque<Snapshot*> GetHistory();
 	unsigned int GetHistoryPosition();
-	void SetHistory(std::deque<Snapshot*> newHistory);
+	void SetHistory(const std::deque<Snapshot*> &newHistory);
 	void SetHistoryPosition(unsigned int newHistoryPosition);
 	Snapshot * GetRedoHistory();
 	void SetRedoHistory(Snapshot * redo);
@@ -156,7 +152,6 @@ public:
 	void SetBrushID(int i);
 
 	void SetVote(int direction);
-	void SetSaveFile(SaveFile * newSave);
 	void AddObserver(GameView * observer);
 
 	bool GetPaused();
@@ -189,12 +184,8 @@ public:
 	ui::Point AdjustZoomCoords(ui::Point position);
 	void SetZoomWindowPosition(ui::Point position);
 	ui::Point GetZoomWindowPosition();
-	void SetClipboard(GameSave * save);
-	void SetPlaceSave(GameSave * save);
 	void Log(String message, bool printToFile);
 	deque<String> GetLog();
-	GameSave * GetClipboard();
-	GameSave * GetPlaceSave();
 
 	std::vector<Notification*> GetNotifications();
 	void AddNotification(Notification * notification);

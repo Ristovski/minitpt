@@ -15,6 +15,7 @@ private:
 	virtual void Exit();
 	virtual void Show();
 	virtual void Hide();
+	virtual ~Controller();
 };
 
 #endif /* CONTROLLER_H_ */

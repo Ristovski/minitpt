@@ -1,7 +1,7 @@
 #include "simulation/Air.h"
 #include "gui/game/GameModel.h"
+#include "gui/interface/Engine.h"
 #include "OptionsModel.h"
-#include "client/Client.h"
 
 OptionsModel::OptionsModel(GameModel * gModel_) {
 	gModel = gModel_;
@@ -16,12 +16,11 @@ void OptionsModel::AddObserver(OptionsView* view)
 
 bool OptionsModel::GetHeatSimulation()
 {
-	return sim->legacy_enable?false:true;
+	return true;
 }
 
 void OptionsModel::SetHeatSimulation(bool state)
 {
-	sim->legacy_enable = state?0:1;
 	notifySettingsChanged();
 }
 
@@ -142,11 +141,6 @@ void OptionsModel::SetFastQuit(bool fastquit)
 {
 	ui::Engine::Ref().SetFastQuit(fastquit);
 	notifySettingsChanged();
-}
-
-bool OptionsModel::GetShowAvatars()
-{
-	return Client::Ref().GetPrefBool("ShowAvatars", true);
 }
 
 void OptionsModel::SetShowAvatars(bool state)

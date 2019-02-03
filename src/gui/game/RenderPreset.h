@@ -9,7 +9,7 @@ public:
 	unsigned int ColourMode;
 
 	RenderPreset(): Name(""), ColourMode(0) {}
-	RenderPreset(String name, std::vector<unsigned int> renderModes, std::vector<unsigned int> displayModes, unsigned int colourMode):
+	RenderPreset(String name, const std::vector<unsigned int> &renderModes, const std::vector<unsigned int> &displayModes, unsigned int colourMode):
 		Name(name),
 		RenderModes(renderModes),
 		DisplayModes(displayModes),

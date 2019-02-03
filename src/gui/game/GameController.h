@@ -7,7 +7,6 @@
 #include "simulation/Simulation.h"
 #include "gui/interface/Point.h"
 #include "gui/render/RenderController.h"
-#include "gui/console/ConsoleController.h"
 #include "gui/options/OptionsController.h"
 #include "RenderPreset.h"
 #include "Menu.h"
@@ -18,8 +17,6 @@ class DebugInfo;
 class Notification;
 class GameModel;
 class GameView;
-class CommandInterface;
-class ConsoleController;
 class GameController
 {
 private:
@@ -29,9 +26,7 @@ private:
 	GameView * gameView;
 	GameModel * gameModel;
 	RenderController * renderOptions;
-	ConsoleController * console;
 	OptionsController * options;
-	CommandInterface * commandInterface;
 	vector<DebugInfo*> debugInfo;
 	unsigned int debugFlags;
 public:
@@ -121,8 +116,6 @@ public:
 	void ReloadSim();
 	void Vote(int direction);
 	void ChangeBrush();
-	void ShowConsole();
-	void HideConsole();
 	void FrameStep();
 	void TranslateSave(ui::Point point);
 	void TransformSave(matrix2d transform);
@@ -143,7 +136,6 @@ public:
 	void ToggleNewtonianGravity();
 
 	bool LoadClipboard();
-	void LoadStamp(GameSave *stamp);
 
 	void RemoveNotification(Notification * notification);
 

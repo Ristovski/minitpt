@@ -22,7 +22,7 @@ public:
 	}
 };
 
-ElementSearchActivity::ElementSearchActivity(GameController * gameController, std::vector<Tool*> tools) :
+ElementSearchActivity::ElementSearchActivity(GameController * gameController, const std::vector<Tool*> &tools) :
 	WindowActivity(ui::Point(-1, -1), ui::Point(236, 302)),
 	firstResult(NULL),
 	gameController(gameController),

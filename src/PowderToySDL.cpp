@@ -24,6 +24,7 @@
 #endif
 #include <signal.h>
 #include <stdexcept>
+#include <cassert>
 
 #ifndef WIN
 #include <unistd.h>
@@ -31,11 +32,11 @@
 
 #include "Format.h"
 
-#include "client/Client.h"
 #include "Misc.h"
 
 #include "gui/game/GameController.h"
 #include "gui/game/GameView.h"
+#include "gui/interface/Engine.h"
 
 #include "gui/font/FontEditor.h"
 
@@ -73,19 +74,6 @@ ByteString ClipboardPull()
 int GetModifiers()
 {
 	return SDL_GetModState();
-}
-
-void LoadWindowPosition()
-{
-	int savedWindowX = Client::Ref().GetPrefInteger("WindowX", INT_MAX);
-	int savedWindowY = Client::Ref().GetPrefInteger("WindowY", INT_MAX);
-
-	int borderTop, borderLeft;
-	SDL_GetWindowBordersSize(sdl_window, &borderTop, &borderLeft, nullptr, nullptr);
-
-	if (savedWindowX + borderLeft > 0 && savedWindowX + borderLeft < desktopWidth
-	        && savedWindowY + borderTop > 0 && savedWindowY + borderTop < desktopHeight)
-		SDL_SetWindowPosition(sdl_window, savedWindowX + borderLeft, savedWindowY + borderTop);
 }
 
 void SaveWindowPosition()
@@ -474,7 +462,6 @@ void EngineProcess()
 		{
 			//Run client tick every second
 			lastTick = frameStart;
-			Client::Ref().Tick();
 		}
 		if (showDoubleScreenDialog)
 		{
@@ -560,13 +547,13 @@ int main(int argc, char * argv[])
 #ifdef WIN
 		_chdir(arguments["ddir"].c_str());
 #else
-		chdir(arguments["ddir"].c_str());
+		assert(chdir(arguments["ddir"].c_str()));
 #endif
 
-	scale = Client::Ref().GetPrefInteger("Scale", 1);
-	resizable = Client::Ref().GetPrefBool("Resizable", false);
-	fullscreen = Client::Ref().GetPrefBool("Fullscreen", false);
-	altFullscreen = Client::Ref().GetPrefBool("AltFullscreen", false);
+	scale = 1;
+	resizable = false;
+	fullscreen = false;
+	altFullscreen = false;
 
 
 	if(arguments["kiosk"] == "true")
@@ -584,15 +571,6 @@ int main(int argc, char * argv[])
 		scale = 1;
 
 	SDLOpen();
-	// TODO: mabe make a nice loop that automagically finds the optimal scale
-	if (Client::Ref().IsFirstRun() && desktopWidth > WINDOWW*2+30 && desktopHeight > WINDOWH*2+30)
-	{
-		scale = 2;
-		SDL_SetWindowSize(sdl_window, WINDOWW * 2, WINDOWH * 2);
-		showDoubleScreenDialog = true;
-	}
-	if (!Client::Ref().IsFirstRun())
-		LoadWindowPosition();
 
 #ifdef OGLI
 	SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
@@ -615,7 +593,7 @@ int main(int argc, char * argv[])
 	engine = &ui::Engine::Ref();
 	engine->SetMaxSize(desktopWidth, desktopHeight);
 	engine->Begin(WINDOWW, WINDOWH);
-	engine->SetFastQuit(Client::Ref().GetPrefBool("FastQuit", true));
+	engine->SetFastQuit(true);
 
 #if !defined(DEBUG) && !defined(_DEBUG)
 	//Get ready to catch any dodgy errors
@@ -662,7 +640,6 @@ int main(int argc, char * argv[])
 	ui::Engine::Ref().CloseWindow();
 	delete gameController;
 	delete ui::Engine::Ref().g;
-	Client::Ref().Shutdown();
 	return 0;
 }
 

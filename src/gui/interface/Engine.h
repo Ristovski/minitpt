@@ -35,14 +35,33 @@ namespace ui
 		void onClose();
 
 		void Begin(int width, int height);
-		inline bool Running() { return running_; }
-		inline bool Broken() { return break_; }
-		inline long unsigned int LastTick() { return lastTick; }
-		inline void LastTick(long unsigned int tick) { lastTick = tick; }
 		void Exit();
 		void ConfirmExit();
 		void Break();
 		void UnBreak();
+
+		void Tick();
+		void Draw();
+
+		void SetFps(float fps);
+
+		void SetMaxSize(int width, int height);
+
+		inline void SetSize(int width, int height);
+
+		//void SetState(Window* state);
+		//inline State* GetState() { return state_; }
+		float FpsLimit;
+		Graphics * g;
+		int Scale;
+		bool Fullscreen;
+
+		unsigned int FrameIndex;
+
+		inline bool Running() { return running_; }
+		inline bool Broken() { return break_; }
+		inline long unsigned int LastTick() { return lastTick; }
+		inline void LastTick(long unsigned int tick) { lastTick = tick; }
 
 		void SetFullscreen(bool fullscreen) { Fullscreen = fullscreen; }
 		inline bool GetFullscreen() { return Fullscreen; }
@@ -55,10 +74,6 @@ namespace ui
 		void SetFastQuit(bool fastquit) { FastQuit = fastquit; }
 		inline bool GetFastQuit() {return FastQuit; }
 
-		void Tick();
-		void Draw();
-
-		void SetFps(float fps);
 		inline float GetFps() { return fps; }
 
 		inline int GetMouseButton() { return mouseb_; }
@@ -69,19 +84,7 @@ namespace ui
 		inline int GetMaxWidth() { return maxWidth; }
 		inline int GetMaxHeight() { return maxHeight; }
 
-		void SetMaxSize(int width, int height);
-
-		inline void SetSize(int width, int height);
-
-		//void SetState(Window* state);
-		//inline State* GetState() { return state_; }
 		inline Window* GetWindow() { return state_; }
-		float FpsLimit;
-		Graphics * g;
-		int Scale;
-		bool Fullscreen;
-
-		unsigned int FrameIndex;
 	private:
 		bool altFullscreen;
 		bool resizable;

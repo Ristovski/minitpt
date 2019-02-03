@@ -48,7 +48,7 @@ Element_URAN::Element_URAN()
 //#TPT-Directive ElementHeader Element_URAN static int update(UPDATE_FUNC_ARGS)
 int Element_URAN::update(UPDATE_FUNC_ARGS)
 {
-	if (!sim->legacy_enable && sim->pv[y/CELL][x/CELL]>0.0f)
+	if (sim->pv[y/CELL][x/CELL]>0.0f)
 	{
 		if (parts[i].temp == MIN_TEMP)
 		{

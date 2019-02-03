@@ -5,7 +5,6 @@
 #include "Platform.h"
 #include "GameController.h"
 #include "GameModel.h"
-#include "client/Client.h"
 #include "gui/render/RenderController.h"
 #include "gui/interface/Point.h"
 #include "gui/dialogues/ErrorMessage.h"
@@ -18,18 +17,13 @@
 #include "Notification.h"
 #include "gui/interface/Keys.h"
 #include "gui/interface/Mouse.h"
+#include "gui/interface/Engine.h"
 #include "simulation/Snapshot.h"
 #include "debug/DebugInfo.h"
 #include "debug/DebugParts.h"
 #include "debug/ElementPopulation.h"
 #include "debug/DebugLines.h"
 #include "debug/ParticleDebug.h"
-#ifdef LUACONSOLE
-#include "lua/LuaScriptInterface.h"
-#else
-#include "lua/TPTScriptInterface.h"
-#endif
-#include "lua/LuaEvents.h"
 
 using namespace std;
 
@@ -61,7 +55,6 @@ public:
 	virtual void ControllerExit()
 	{
 		cc->gameModel->UpdateQuickOptions();
-		Client::Ref().WritePrefs();
 	}
 };
 
@@ -79,7 +72,6 @@ GameController::GameController():
 	firstTick(true),
 	foundSignID(-1),
 	renderOptions(NULL),
-	console(NULL),
 	options(NULL),
 	debugFlags(0),
 	HasDone(false)
@@ -90,15 +82,6 @@ GameController::GameController():
 
 	gameView->AttachController(this);
 	gameModel->AddObserver(gameView);
-
-	gameView->SetDebugHUD(Client::Ref().GetPrefBool("Renderer.DebugMode", false));
-
-#ifdef LUACONSOLE
-	commandInterface = new LuaScriptInterface(this, gameModel);
-	((LuaScriptInterface*)commandInterface)->SetWindow(gameView);
-#else
-	commandInterface = new TPTScriptInterface(this, gameModel);
-#endif
 
 	debugInfo.push_back(new DebugParts(0x1, gameModel->GetSimulation()));
 	debugInfo.push_back(new ElementPopulationDebug(0x2, gameModel->GetSimulation()));
@@ -112,15 +95,11 @@ GameController::~GameController()
 	{
 		delete renderOptions;
 	}
-	if(console)
-	{
-		delete console;
-	}
 	if (options)
 	{
 		delete options;
 	}
-	for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; iter++)
+	for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; ++iter)
 	{
 		delete *iter;
 	}
@@ -147,18 +126,6 @@ GameController::~GameController()
 	}
 }
 
-void GameController::HistoryRestore()
-{
-}
-
-void GameController::HistorySnapshot()
-{
-}
-
-void GameController::HistoryForward()
-{
-}
-
 GameView * GameController::GetView()
 {
 	return gameView;
@@ -181,40 +148,6 @@ int GameController::GetSignAt(int x, int y)
 String GameController::GetSignText(int signID)
 {
 	return gameModel->GetSimulation()->signs[signID].text;
-}
-
-void GameController::PlaceSave(ui::Point position, bool includePressure)
-{
-}
-
-void GameController::Install()
-{
-#if defined(MACOSX)
-	new InformationMessage("No installation necessary", "You don't need to install The Powder Toy on OS X", false);
-#elif defined(WIN) || defined(LIN)
-	class InstallConfirmation: public ConfirmDialogueCallback {
-	public:
-		GameController * c;
-		InstallConfirmation(GameController * c_) {	c = c_;	}
-		virtual void ConfirmCallback(ConfirmPrompt::DialogueResult result) {
-			if (result == ConfirmPrompt::ResultOkay)
-			{
-				if(Client::Ref().DoInstallation())
-				{
-					new InformationMessage("Success", "Installation completed", false);
-				}
-				else
-				{
-					new ErrorMessage("Could not install", "The installation did not complete due to an error");
-				}
-			}
-		}
-		virtual ~InstallConfirmation() { }
-	};
-	new ConfirmPrompt("Install The Powder Toy", "Do you wish to install The Powder Toy on this computer?\nThis allows you to open save files and saves directly from the website.", new InstallConfirmation(this));
-#else
-	new ErrorMessage("Cannot install", "You cannot install The Powder Toy on this platform");
-#endif
 }
 
 void GameController::AdjustGridSize(int direction)
@@ -370,18 +303,6 @@ void GameController::DrawPoints(int toolSelection, ui::Point oldPos, ui::Point n
 		activeTool->DrawLine(sim, cBrush, oldPos, newPos, true);
 }
 
-bool GameController::LoadClipboard()
-{
-}
-
-void GameController::TranslateSave(ui::Point point)
-{
-}
-
-void GameController::TransformSave(matrix2d transform)
-{
-}
-
 void GameController::ToolClick(int toolSelection, ui::Point point)
 {
 	Simulation * sim = gameModel->GetSimulation();
@@ -392,31 +313,9 @@ void GameController::ToolClick(int toolSelection, ui::Point point)
 	activeTool->Click(sim, cBrush, point);
 }
 
-ByteString GameController::StampRegion(ui::Point point1, ui::Point point2, bool includePressure)
-{
-}
-
-void GameController::CopyRegion(ui::Point point1, ui::Point point2, bool includePressure)
-{
-}
-
-void GameController::CutRegion(ui::Point point1, ui::Point point2, bool includePressure)
-{
-	CopyRegion(point1, point2, includePressure);
-	gameModel->GetSimulation()->clear_area(point1.X, point1.Y, point2.X-point1.X, point2.Y-point1.Y);
-}
-
-bool GameController::MouseMove(int x, int y, int dx, int dy)
-{
-	MouseMoveEvent ev(x, y, dx, dy);
-	return commandInterface->HandleEvent(LuaEvents::mousemove, &ev);
-}
-
 bool GameController::MouseDown(int x, int y, unsigned button)
 {
-	MouseDownEvent ev(x, y, button);
-	bool ret = commandInterface->HandleEvent(LuaEvents::mousedown, &ev);
-	if (ret && y<YRES && x<XRES && !gameView->GetPlacingSave() && !gameView->GetPlacingZoom())
+	if (y<YRES && x<XRES && !gameView->GetPlacingSave() && !gameView->GetPlacingZoom())
 	{
 		ui::Point point = gameModel->AdjustZoomCoords(ui::Point(x, y));
 		x = point.X;
@@ -432,13 +331,12 @@ bool GameController::MouseDown(int x, int y, unsigned button)
 			}
 		}
 	}
-	return ret;
+	return true;
 }
 
 bool GameController::MouseUp(int x, int y, unsigned button, char type)
 {
-	MouseUpEvent ev(x, y, button, type);
-	bool ret = commandInterface->HandleEvent(LuaEvents::mouseup, &ev);
+	bool ret = true;
 	if (type)
 		return ret;
 	if (ret && foundSignID != -1 && y<YRES && x<XRES && !gameView->GetPlacingSave())
@@ -463,22 +361,18 @@ bool GameController::MouseUp(int x, int y, unsigned button, char type)
 						String link = str.Substr(3, pos-3);
 						switch (type)
 						{
-						case 'c':
-						{
-							int saveID = link.ToNumber<int>(true);
-							if (saveID)
-								OpenSavePreview(saveID, 0, false);
-							break;
-						}
-						case 't':
-						{
-							// buff is already confirmed to be a number by sign::splitsign
-							Platform::OpenURI(ByteString::Build("http://powdertoy.co.uk/Discussions/Thread/View.html?Thread=", link.ToUtf8()));
-							break;
-						}
-						case 's':
-							OpenSearch(link);
-							break;
+							case 'c':
+								{
+									break;
+								}
+							case 't':
+								{
+									// buff is already confirmed to be a number by sign::splitsign
+									Platform::OpenURI(ByteString::Build("http://powdertoy.co.uk/Discussions/Thread/View.html?Thread=", link.ToUtf8()));
+									break;
+								}
+							case 's':
+								break;
 						}
 					}
 					else if (type == 'b')
@@ -494,22 +388,9 @@ bool GameController::MouseUp(int x, int y, unsigned button, char type)
 	return ret;
 }
 
-bool GameController::MouseWheel(int x, int y, int d)
-{
-	MouseWheelEvent ev(x, y, d);
-	return commandInterface->HandleEvent(LuaEvents::mousewheel, &ev);
-}
-
-bool GameController::TextInput(String text)
-{
-	TextInputEvent ev(text);
-	return commandInterface->HandleEvent(LuaEvents::textinput, &ev);
-}
-
 bool GameController::KeyPress(int key, int scan, bool repeat, bool shift, bool ctrl, bool alt)
 {
-	KeyEvent ev(key, scan, repeat, shift, ctrl, alt);
-	bool ret = commandInterface->HandleEvent(LuaEvents::keypress, &ev);
+	bool ret = true;
 	if (repeat)
 		return ret;
 	if (ret)
@@ -564,19 +445,19 @@ bool GameController::KeyPress(int key, int scan, bool repeat, bool shift, bool c
 		{
 			switch(key)
 			{
-			case 'w':
-				SwitchGravity();
-				break;
-			case 'd':
-				gameView->SetDebugHUD(!gameView->GetDebugHUD());
-				break;
-			case 's':
-				gameView->BeginStampSelection();
-				break;
+				case 'w':
+					SwitchGravity();
+					break;
+				case 'd':
+					gameView->SetDebugHUD(!gameView->GetDebugHUD());
+					break;
+				case 's':
+					gameView->BeginStampSelection();
+					break;
 			}
 		}
 
-		for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; iter++)
+		for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; ++iter)
 		{
 			if ((*iter)->debugID & debugFlags)
 				if (!(*iter)->KeyPress(key, scan, shift, ctrl, alt, gameView->GetMousePosition()))
@@ -588,8 +469,7 @@ bool GameController::KeyPress(int key, int scan, bool repeat, bool shift, bool c
 
 bool GameController::KeyRelease(int key, int scan, bool repeat, bool shift, bool ctrl, bool alt)
 {
-	KeyEvent ev(key, scan, repeat, shift, ctrl, alt);
-	bool ret = commandInterface->HandleEvent(LuaEvents::keyrelease, &ev);
+	bool ret = true;
 	if (repeat)
 		return ret;
 	if (ret)
@@ -628,32 +508,11 @@ bool GameController::KeyRelease(int key, int scan, bool repeat, bool shift, bool
 
 void GameController::Tick()
 {
-	if(firstTick)
-	{
-#ifdef LUACONSOLE
-		((LuaScriptInterface*)commandInterface)->Init();
-#endif
-#if !defined(MACOSX) && !defined(NO_INSTALL_CHECK)
-		if (Client::Ref().IsFirstRun())
-		{
-			Install();
-		}
-#endif
-		firstTick = false;
-	}
-	for(std::vector<DebugInfo*>::iterator iter = debugInfo.begin(), end = debugInfo.end(); iter != end; iter++)
-	{
-		if ((*iter)->debugID & debugFlags)
-			(*iter)->Draw();
-	}
-	commandInterface->OnTick();
+	firstTick = false;
 }
 
 void GameController::Exit()
 {
-	CloseEvent ev;
-	commandInterface->HandleEvent(LuaEvents::close, &ev);
-	gameView->CloseActiveWindow();
 	HasDone = true;
 }
 
@@ -958,30 +817,6 @@ void GameController::SetReplaceModeFlags(int flags)
 	gameModel->GetSimulation()->replaceModeFlags = flags;
 }
 
-void GameController::OpenSearch(String searchText)
-{
-}
-
-void GameController::OpenLocalSaveWindow(bool asCurrent)
-{
-}
-
-void GameController::OpenSavePreview(int saveID, int saveDate, bool instant)
-{
-}
-
-void GameController::OpenSavePreview()
-{
-}
-
-void GameController::OpenLocalBrowse()
-{
-}
-
-void GameController::OpenProfile()
-{
-}
-
 void GameController::OpenElementSearch()
 {
 	vector<Tool*> toolList;
@@ -1015,30 +850,11 @@ void GameController::OpenColourPicker()
 	new ColourPickerActivity(gameModel->GetColourSelectorColour(), new ColourPickerCallback(this));
 }
 
-void GameController::OpenStamps()
-{
-}
-
 void GameController::OpenOptions()
 {
 	options = new OptionsController(gameModel, new OptionsCallback(this));
 	ui::Engine::Ref().ShowWindow(options->GetView());
 
-}
-
-void GameController::ShowConsole()
-{
-	if (!console)
-		console = new ConsoleController(NULL, commandInterface);
-	if (console->GetView() != ui::Engine::Ref().GetWindow())
-		ui::Engine::Ref().ShowWindow(console->GetView());
-}
-
-void GameController::HideConsole()
-{
-	if (!console)
-		return;
-	console->GetView()->CloseActiveWindow();
 }
 
 void GameController::OpenRenderOptions()
@@ -1047,22 +863,10 @@ void GameController::OpenRenderOptions()
 	ui::Engine::Ref().ShowWindow(renderOptions->GetView());
 }
 
-void GameController::OpenSaveWindow()
-{
-}
-
-void GameController::SaveAsCurrent()
-{
-}
-
 void GameController::FrameStep()
 {
 	gameModel->FrameStep(1);
 	gameModel->SetPaused(true);
-}
-
-void GameController::Vote(int direction)
-{
 }
 
 void GameController::ChangeBrush()
@@ -1072,12 +876,7 @@ void GameController::ChangeBrush()
 
 void GameController::ClearSim()
 {
-	HistorySnapshot();
 	gameModel->ClearSimulation();
-}
-
-void GameController::ReloadSim()
-{
 }
 
 ByteString GameController::ElementResolve(int type, int ctype)
@@ -1108,18 +907,4 @@ String GameController::WallName(int type)
 		return gameModel->GetSimulation()->wtypes[type].name;
 	else
 		return String();
-}
-
-int GameController::Record(bool record)
-{
-	return gameView->Record(record);
-}
-
-void GameController::RemoveNotification(Notification * notification)
-{
-	gameModel->RemoveNotification(notification);
-}
-
-void GameController::RunUpdater()
-{
 }
