@@ -3710,6 +3710,7 @@ void Simulation::UpdateParticles(int start, int end)
 			}
 
 killed:
+{
 			if (parts[i].type == PT_NONE)//if its dead, skip to next particle
 				continue;
 
@@ -4208,6 +4209,7 @@ killed:
 					}
 				}
 			}
+}
 			continue;
 		}
 
