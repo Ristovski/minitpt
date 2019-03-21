@@ -4,12 +4,13 @@ project('minitpt', ['cpp','c'],
 
 # Hardcoded for now, we can use fancy Meson options for toggling "features" later
 features = ['-DSDL_INC', '-DLIN', '-DGRAVFFT', '-D_REENTRANT', '-D_64BIT', '-DDEBUG', '-DX86', '-DX86_SSE', '-DX86_SSE2', '-DX86_SSE3',
-			'-ffast-math', '-fomit-frame-pointer', '-Wno-invalid-offsetof', '-Ofast', '-march=native', '-flto=thin']
+			'-ffast-math', '-fomit-frame-pointer', '-Wno-invalid-offsetof', '-Ofast', '-march=native']
 
 compiler = meson.get_compiler('cpp')
 
 common = ['-funsafe-math-optimizations', '-ftree-vectorize']
 
+# Enable various compiler diagnostics 
 if get_option('compiler_info')
 	if compiler.get_id() == 'intel'
 		features += ['-diag-file-append=diag.txt', '-wd858']
@@ -20,9 +21,11 @@ if get_option('compiler_info')
 	endif
 endif
 
-# clang and icc don't support this flag
+# Set various compiler specific flags
 if compiler.get_id() == 'gcc'
 	features += ['-funsafe-loop-optimizations']
+elif compiler.get_id() == 'clang'
+	features += ['-flto=thin']
 endif
 
 features += common
