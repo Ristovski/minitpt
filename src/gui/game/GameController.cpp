@@ -1,5 +1,6 @@
 #include <iostream>
 #include <queue>
+#include <chrono>
 #include "Config.h"
 #include "Format.h"
 #include "Platform.h"
@@ -615,6 +616,8 @@ void GameController::LoadRenderPreset(int presetNum)
 
 void GameController::Update()
 {
+	static std::chrono::milliseconds total {};
+	static int frames {};
 	ui::Point pos = gameView->GetMousePosition();
 	gameModel->GetRenderer()->mousePos = PointTranslate(pos);
 	if (pos.X < XRES && pos.Y < YRES)
@@ -626,8 +629,20 @@ void GameController::Update()
 	sim->BeforeSim();
 	if (!sim->sys_pause || sim->framerender)
 	{
+		auto start = chrono::high_resolution_clock::now();
 		sim->UpdateParticles(0, NPART);
+		total += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
+		frames++;
 		sim->AfterSim();
+	}
+
+	//cout << frames << endl;
+
+	if (frames == 500)
+	{
+		cout << "UpdateParticles() average over 500 frames: " << chrono::duration <double, milli> (total).count() << " ms" << endl;
+		frames = 0;
+		total = chrono::milliseconds(0);
 	}
 
 	//if either STKM or STK2 isn't out, reset it's selected element. Defaults to PT_DUST unless right selected is something else
