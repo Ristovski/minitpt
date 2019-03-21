@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cstddef>
 #include <vector>
+#include <chrono>
 
 #include "Config.h"
 #include "Elements.h"
@@ -149,7 +150,7 @@ public:
 	void set_emap(int x, int y);
 	int parts_avg(int ci, int ni, int t);
 	void create_arc(int sx, int sy, int dx, int dy, int midpoints, int variance, int type, int flags);
-	__attribute__((nothrow)) void UpdateParticles(int start, int end);
+	__attribute__((nothrow)) void UpdateParticles(int start, int end, std::chrono::nanoseconds& total);
 	void SimulateGoL();
 	void RecalcFreeParticles(bool do_life_dec);
 	void CheckStacking();

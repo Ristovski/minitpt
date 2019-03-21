@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 #include <set>
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -3193,7 +3194,7 @@ void Simulation::delete_part(int x, int y)//calls kill_part with the particle lo
 	kill_part(ID(i));
 }
 
-void Simulation::UpdateParticles(int start, int end)
+void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& total)
 {
 	int i, j, x, y, t, nx, ny, r, surround_space, s, rt, nt;
 	float mv, dx, dy, nrx, nry, dp, ctemph, ctempl, gravtot;
@@ -3304,6 +3305,8 @@ void Simulation::UpdateParticles(int start, int end)
 			}
 			else
 				pGravX = pGravY = 0;
+
+			auto start = std::chrono::high_resolution_clock::now();
 			//velocity updates for the particle
 			if (!(parts[i].flags&FLAG_MOVABLE))
 			{
@@ -3696,6 +3699,7 @@ void Simulation::UpdateParticles(int start, int end)
 				transitionOccurred = true;
 			}
 
+			total += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - start);
 			//call the particle update function, if there is one
 			if (elements[t].Update)
 			{

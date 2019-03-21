@@ -26,6 +26,7 @@ if compiler.get_id() == 'gcc'
 	features += ['-funsafe-loop-optimizations']
 elif compiler.get_id() == 'clang'
 	features += ['-flto=thin']
+	add_global_link_arguments(['-flto=thin'], language: 'cpp')
 endif
 
 features += common
