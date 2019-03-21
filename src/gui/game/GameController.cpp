@@ -616,7 +616,7 @@ void GameController::LoadRenderPreset(int presetNum)
 void GameController::Update()
 {
 	static std::chrono::milliseconds total_time {};
-	static std::chrono::nanoseconds movement_time {};
+	static std::chrono::nanoseconds logic_time {};
 	static int frames {};
 	ui::Point pos = gameView->GetMousePosition();
 	gameModel->GetRenderer()->mousePos = PointTranslate(pos);
@@ -630,7 +630,7 @@ void GameController::Update()
 	if (!sim->sys_pause || sim->framerender)
 	{
 		auto start = chrono::high_resolution_clock::now();
-		sim->UpdateParticles(0, NPART, movement_time);
+		sim->UpdateParticles(0, NPART, logic_time);
 		total_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
 		sim->AfterSim();
 	}
@@ -638,15 +638,15 @@ void GameController::Update()
 	if (++frames == 500)
 	{
 		auto total = chrono::duration <double, milli>(total_time).count()/500.0;
-		auto movement = chrono::duration <double, milli>(movement_time).count()/500.0;
+		auto logic = chrono::duration <double, milli>(logic_time).count()/500.0;
 		if (total)
 		{
 			cout << "UpdateParticles(): " << total << " ms" << endl;
-			cout << "movement/total: " << movement/total << endl;
+			cout << "movement/total: " << (total - logic)/total << endl;
 		}
 		frames = 0;
 		total_time = chrono::milliseconds(0);
-		movement_time = chrono::milliseconds(0);
+		logic_time = chrono::milliseconds(0);
 	}
 
 	//if either STKM or STK2 isn't out, reset it's selected element. Defaults to PT_DUST unless right selected is something else

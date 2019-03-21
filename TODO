@@ -17,3 +17,6 @@ Interface General:
 
 Interface Elements:
 	Vertical Scrolling for Textbox,
+
+New features:
+	Store % composition in air cells, instead of oxygen particles and etc.

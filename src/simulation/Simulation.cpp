@@ -3306,7 +3306,6 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 			else
 				pGravX = pGravY = 0;
 
-			auto start = std::chrono::high_resolution_clock::now();
 			//velocity updates for the particle
 			if (!(parts[i].flags&FLAG_MOVABLE))
 			{
@@ -3699,10 +3698,10 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 				transitionOccurred = true;
 			}
 
-			total += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - start);
 			//call the particle update function, if there is one
 			if (elements[t].Update)
 			{
+				auto start_time = std::chrono::high_resolution_clock::now();
 				if ((*(elements[t].Update))(this, i, x, y, surround_space, nt, parts, pmap))
 					continue;
 				else if (t==PT_WARP)
@@ -3711,6 +3710,7 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 					x = (int)(parts[i].x+0.5f);
 					y = (int)(parts[i].y+0.5f);
 				}
+				total += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - start_time);
 			}
 
 killed:
