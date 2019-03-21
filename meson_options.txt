@@ -1,0 +1,2 @@
+# Enable various compiler info to be dumped to files, such as optimization misses etc
+option('compiler_info', type : 'boolean', value : 'false')

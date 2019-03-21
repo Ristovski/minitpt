@@ -4,13 +4,34 @@ project('minitpt', ['cpp','c'],
 
 # Hardcoded for now, we can use fancy Meson options for toggling "features" later
 features = ['-DSDL_INC', '-DLIN', '-DGRAVFFT', '-D_REENTRANT', '-D_64BIT', '-DDEBUG', '-DX86', '-DX86_SSE', '-DX86_SSE2', '-DX86_SSE3',
-			'-ftree-vectorize', '-funsafe-math-optimizations', '-ffast-math', '-fomit-frame-pointer', '-funsafe-loop-optimizations', '-Wno-invalid-offsetof']
+			'-ffast-math', '-fomit-frame-pointer', '-Wno-invalid-offsetof', '-Ofast', '-march=native', '-flto=thin']
+
+compiler = meson.get_compiler('cpp')
+
+common = ['-funsafe-math-optimizations', '-ftree-vectorize']
+
+if get_option('compiler_info')
+	if compiler.get_id() == 'intel'
+		features += ['-diag-file-append=diag.txt', '-wd858']
+	elif compiler.get_id() == 'gcc'
+		features += ['-fopt-info-vec-missed=opts.txt']
+	elif compiler.get_id() == 'clang'
+		features += ['-Rpass-analysis=loop-vectorize', '-fsave-optimization-record', '-foptimization-record-file=opt.txt']
+	endif
+endif
+
+# clang and icc don't support this flag
+if compiler.get_id() == 'gcc'
+	features += ['-funsafe-loop-optimizations']
+endif
+
+features += common
 
 add_global_arguments(['-march=native', '-pipe', '-O2', features], language : 'cpp')
 
 # Ugly hack for now (well, not really) since Meson does not support wildcards (as to keep being "fast")
 # we can replace this later with a hardcoded list of source files
-sources = run_command('find', 'src', 'data', 'generated', 'imgui', 'imgui/GL/', '-type', 'f', '-name', '*.c*').stdout().strip().split('\n')
+sources = run_command('find', 'src', 'data', 'generated', '-type', 'f', '-name', '*.c*').stdout().strip().split('\n')
 
 include_dirs = include_directories('data/', 'generated/', 'src/', 'imgui/')
 
