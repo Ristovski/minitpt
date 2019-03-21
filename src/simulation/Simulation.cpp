@@ -3703,14 +3703,16 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 			{
 				auto start_time = std::chrono::high_resolution_clock::now();
 				if ((*(elements[t].Update))(this, i, x, y, surround_space, nt, parts, pmap))
+				{
+					total += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - start_time);
 					continue;
+				}
 				else if (t==PT_WARP)
 				{
 					// Warp does some movement in its update func, update variables to avoid incorrect data in pmap
 					x = (int)(parts[i].x+0.5f);
 					y = (int)(parts[i].y+0.5f);
 				}
-				total += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - start_time);
 			}
 
 killed:
