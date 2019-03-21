@@ -640,7 +640,7 @@ void GameController::Update()
 
 	if (frames == 500)
 	{
-		cout << "UpdateParticles() average over 500 frames: " << chrono::duration <double, milli> (total).count() << " ms" << endl;
+		cout << "UpdateParticles() average over 500 frames: " << chrono::duration <double, milli> (total).count()/500 << " ms" << endl;
 		frames = 0;
 		total = chrono::milliseconds(0);
 	}
