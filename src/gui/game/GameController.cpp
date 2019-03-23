@@ -638,6 +638,8 @@ void GameController::Update()
 	if (!sim->sys_pause || sim->framerender)
 	{
 		auto start = chrono::high_resolution_clock::now();
+		//Mark regions for each part
+		sim->MarkPartsRegions(0, NPART);
 
 		std::thread region_0(UpdateParticlesByRegion, sim, std::ref(logic_time1), 0);
 		std::thread region_2(UpdateParticlesByRegion, sim, std::ref(logic_time2), 2);

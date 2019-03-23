@@ -99,6 +99,8 @@ public:
 	float fvy[YRES/CELL][XRES/CELL];
 	//Particles
 	Particle parts[NPART];
+	//Original region the part was in
+	int parts_region[NPART];
 	int pmap[YRES][XRES];
 	int photons[YRES][XRES];
 	unsigned int pmap_count[YRES][XRES];
@@ -150,6 +152,7 @@ public:
 	void set_emap(int x, int y);
 	int parts_avg(int ci, int ni, int t);
 	void create_arc(int sx, int sy, int dx, int dy, int midpoints, int variance, int type, int flags);
+	void MarkPartsRegions(int start, int end);
 	__attribute__((nothrow)) void UpdateParticles(int start, int end, std::chrono::nanoseconds& total, int region);
 	void SimulateGoL();
 	void RecalcFreeParticles(bool do_life_dec);
