@@ -1,6 +1,7 @@
 #include <iostream>
 #include <queue>
 #include <chrono>
+#include <thread>
 #include "Config.h"
 #include "Format.h"
 #include "Platform.h"
@@ -613,9 +614,16 @@ void GameController::LoadRenderPreset(int presetNum)
 	renderer->SetColourMode(preset.ColourMode);
 }
 
+void UpdateParticlesByRegion(Simulation* sim, std::chrono::nanoseconds& logic_time, int region)
+{
+	sim->UpdateParticles(0, NPART, logic_time, region);
+}
+
 void GameController::Update()
 {
 	static std::chrono::milliseconds total_time {};
+	static std::chrono::nanoseconds logic_time1 {};
+	static std::chrono::nanoseconds logic_time2 {};
 	static std::chrono::nanoseconds logic_time {};
 	static int frames {};
 	ui::Point pos = gameView->GetMousePosition();
@@ -630,7 +638,25 @@ void GameController::Update()
 	if (!sim->sys_pause || sim->framerender)
 	{
 		auto start = chrono::high_resolution_clock::now();
-		sim->UpdateParticles(0, NPART, logic_time);
+
+		std::thread region_0(UpdateParticlesByRegion, sim, std::ref(logic_time1), 0);
+		std::thread region_2(UpdateParticlesByRegion, sim, std::ref(logic_time2), 2);
+
+		region_0.join(); region_2.join();
+		std::thread region_1(UpdateParticlesByRegion, sim, std::ref(logic_time1), 1);
+		std::thread region_3(UpdateParticlesByRegion, sim, std::ref(logic_time2), 3);
+
+		region_1.join(); region_3.join();
+
+		/*
+		UpdateParticlesByRegion(sim, logic_time1, 0);
+		UpdateParticlesByRegion(sim, logic_time2, 2);
+		UpdateParticlesByRegion(sim, logic_time1, 1);
+		UpdateParticlesByRegion(sim, logic_time2, 3);
+		*/
+
+		logic_time = logic_time1 + logic_time2;
+
 		total_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
 		sim->AfterSim();
 	}

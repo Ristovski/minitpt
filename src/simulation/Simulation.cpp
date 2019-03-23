@@ -3194,7 +3194,7 @@ void Simulation::delete_part(int x, int y)//calls kill_part with the particle lo
 	kill_part(ID(i));
 }
 
-void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& total)
+void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& total, int region)
 {
 	int i, j, x, y, t, nx, ny, r, surround_space, s, rt, nt;
 	float mv, dx, dy, nrx, nry, dp, ctemph, ctempl, gravtot;
@@ -3217,6 +3217,10 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 
 			x = (int)(parts[i].x+0.5f);
 			y = (int)(parts[i].y+0.5f);
+
+			//Check if the particle lies in the correct region
+			if(((XRES/4)*region > x) || (x > (XRES/4)*(region+1)))
+				continue;
 
 			//this kills any particle out of the screen, or in a wall where it isn't supposed to go
 			if (x<CELL || y<CELL || x>=XRES-CELL || y>=YRES-CELL ||
