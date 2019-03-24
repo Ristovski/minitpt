@@ -61,8 +61,8 @@ private:
 	GameView * gameView;
 	GameModel * gameModel;
 
-	thread thread_pool[2];
-	int region_pool[2];
+	thread thread_pool[4];
+	int region_pool[4];
 	Barrier startbarrier;
 	Barrier endbarrier;
 	atomic<bool> do_work;

@@ -3196,17 +3196,14 @@ void Simulation::delete_part(int x, int y)//calls kill_part with the particle lo
 
 void Simulation::MarkPartsRegions(int start, int end)
 {
-	int i, x, y, t;
+	int i, x;
 
 	for (i = start; i <= end && i <= parts_lastActiveIndex; i++)
 		if (parts[i].type)
 		{
-			t = parts[i].type;
-
 			x = (int)(parts[i].x+0.5f);
-			y = (int)(parts[i].y+0.5f);
 
-			parts_region[i] = x/(XRES/4);
+			parts_region[i] = x/(XRES/8);
 		}
 
 }
