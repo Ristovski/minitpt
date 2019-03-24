@@ -1,7 +1,6 @@
 #include <iostream>
 #include <queue>
 #include <chrono>
-#include <thread>
 #include "Config.h"
 #include "Format.h"
 #include "Platform.h"
@@ -69,9 +68,27 @@ public:
 	}
 };
 
+void UpdateParticlesByRegion(GameModel* gameModel, Barrier* sbr, Barrier* ebr, atomic<bool>& work, int* rp, int id)
+{
+	while(true)
+	{
+		Simulation * sim = gameModel->GetSimulation();
+		chrono::nanoseconds logic_time;
+
+		sbr->Wait();
+		if(!work)
+			break;
+		sim->UpdateParticles(0, NPART, logic_time, rp[id]);
+		ebr->Wait();
+	}
+}
+
 GameController::GameController():
 	firstTick(true),
 	foundSignID(-1),
+	startbarrier(3),
+	endbarrier(3),
+	do_work(true),
 	renderOptions(NULL),
 	options(NULL),
 	debugFlags(0),
@@ -88,10 +105,18 @@ GameController::GameController():
 	debugInfo.push_back(new ElementPopulationDebug(0x2, gameModel->GetSimulation()));
 	debugInfo.push_back(new DebugLines(0x4, gameView, this));
 	//debugInfo.push_back(new ParticleDebug(0x8, gameModel->GetSimulation(), gameModel));
+	
+	thread_pool[0] = std::thread(UpdateParticlesByRegion, gameModel, &startbarrier, &endbarrier, std::ref(do_work), region_pool, 0);
+	thread_pool[1] = std::thread(UpdateParticlesByRegion, gameModel, &startbarrier, &endbarrier, std::ref(do_work), region_pool, 1);
 }
 
 GameController::~GameController()
 {
+	//Stop threads
+	do_work = false;
+	startbarrier.Wait();
+	thread_pool[0].join(); thread_pool[1].join();
+
 	if(renderOptions)
 	{
 		delete renderOptions;
@@ -614,11 +639,6 @@ void GameController::LoadRenderPreset(int presetNum)
 	renderer->SetColourMode(preset.ColourMode);
 }
 
-void UpdateParticlesByRegion(Simulation* sim, std::chrono::nanoseconds& logic_time, int region)
-{
-	sim->UpdateParticles(0, NPART, logic_time, region);
-}
-
 void GameController::Update()
 {
 	static std::chrono::milliseconds total_time {};
@@ -641,21 +661,17 @@ void GameController::Update()
 		//Mark regions for each part
 		sim->MarkPartsRegions(0, NPART);
 
-		std::thread region_0(UpdateParticlesByRegion, sim, std::ref(logic_time1), 0);
-		std::thread region_2(UpdateParticlesByRegion, sim, std::ref(logic_time2), 2);
+		region_pool[0] = 0;
+		region_pool[1] = 2;
 
-		region_0.join(); region_2.join();
-		std::thread region_1(UpdateParticlesByRegion, sim, std::ref(logic_time1), 1);
-		std::thread region_3(UpdateParticlesByRegion, sim, std::ref(logic_time2), 3);
+		startbarrier.Wait();
+		endbarrier.Wait();
 
-		region_1.join(); region_3.join();
+		region_pool[0] = 1;
+		region_pool[1] = 3;
 
-		/*
-		UpdateParticlesByRegion(sim, logic_time1, 0);
-		UpdateParticlesByRegion(sim, logic_time2, 2);
-		UpdateParticlesByRegion(sim, logic_time1, 1);
-		UpdateParticlesByRegion(sim, logic_time2, 3);
-		*/
+		startbarrier.Wait();
+		endbarrier.Wait();
 
 		logic_time = logic_time1 + logic_time2;
 

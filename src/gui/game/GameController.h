@@ -1,6 +1,10 @@
 #ifndef GAMECONTROLLER_H
 #define GAMECONTROLLER_H
 
+#include <atomic>
+#include <thread>
+#include <condition_variable>
+#include <mutex>
 #include <queue>
 #include "GameView.h"
 #include "GameModel.h"
@@ -12,6 +16,37 @@
 #include "Menu.h"
 
 using namespace std;
+
+//Barrier class taken from StackOverflow
+class Barrier 
+{
+public:
+	explicit Barrier(size_t iCount) : 
+		mThreshold(iCount), 
+		mCount(iCount), 
+		mGeneration(0) {
+		}
+
+	void Wait() {
+		unique_lock<mutex> lLock{mMutex};
+		auto lGen = mGeneration;
+		if (!--mCount) {
+			mGeneration++;
+			mCount = mThreshold;
+			mCond.notify_all();
+		} else {
+			mCond.wait(lLock, [this, lGen] { return lGen != mGeneration; });
+		}
+	}
+
+private:
+	mutex mMutex;
+	condition_variable mCond;
+	size_t mThreshold;
+	size_t mCount;
+	size_t mGeneration;
+};
+
 
 class DebugInfo;
 class Notification;
@@ -25,6 +60,13 @@ private:
 
 	GameView * gameView;
 	GameModel * gameModel;
+
+	thread thread_pool[2];
+	int region_pool[2];
+	Barrier startbarrier;
+	Barrier endbarrier;
+	atomic<bool> do_work;
+
 	RenderController * renderOptions;
 	OptionsController * options;
 	vector<DebugInfo*> debugInfo;
