@@ -3198,12 +3198,20 @@ void Simulation::MarkPartsRegions(int start, int end)
 {
 	int i, x;
 
-	for (i = start; i <= end && i <= parts_lastActiveIndex; i++)
+	//Clear strip lists
+	for(i = 0; i < 2*THRDS; i++)
+	{
+		parts_by_region[i].clear();
+		parts_by_region[i].reserve(NPART/(2*THRDS));
+	}
+
+	//Fill strip lists
+	for(i = start; i <= end && i <= parts_lastActiveIndex; i++)
 		if (parts[i].type)
 		{
 			x = (int)(parts[i].x+0.5f);
 
-			parts_region[i] = x/(XRES/8);
+			parts_by_region[x/(XRES/(2*THRDS))].push_back(i);
 		}
 
 }
@@ -3224,16 +3232,19 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 	bool transitionOccurred;
 
 	//the main particle loop function, goes over all particles.
-	for (i = start; i <= end && i <= parts_lastActiveIndex; i++)
-		if (parts[i].type)
+	for(auto itv = parts_by_region[region].begin(); itv != parts_by_region[region].end(); ++itv)
+		if (parts[*itv].type)
 		{
+			//Set particle ID
+			i = *itv;
+
+			if((i > parts_lastActiveIndex) || (i < start) || (i > end))
+				continue;
+
 			t = parts[i].type;
 
 			x = (int)(parts[i].x+0.5f);
 			y = (int)(parts[i].y+0.5f);
-
-			if(parts_region[i] != region)
-				continue;
 
 			//this kills any particle out of the screen, or in a wall where it isn't supposed to go
 			if (x<CELL || y<CELL || x>=XRES-CELL || y>=YRES-CELL ||

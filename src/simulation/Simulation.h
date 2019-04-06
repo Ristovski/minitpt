@@ -99,8 +99,8 @@ public:
 	float fvy[YRES/CELL][XRES/CELL];
 	//Particles
 	Particle parts[NPART];
-	//Original region the part was in
-	int parts_region[NPART];
+	//Part lists for each region
+	std::vector<int> parts_by_region[2*THRDS];
 	int pmap[YRES][XRES];
 	int photons[YRES][XRES];
 	unsigned int pmap_count[YRES][XRES];

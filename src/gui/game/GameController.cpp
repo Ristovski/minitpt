@@ -86,8 +86,8 @@ void UpdateParticlesByRegion(GameModel* gameModel, Barrier* sbr, Barrier* ebr, a
 GameController::GameController():
 	firstTick(true),
 	foundSignID(-1),
-	startbarrier(5),
-	endbarrier(5),
+	startbarrier(THRDS+1),
+	endbarrier(THRDS+1),
 	do_work(true),
 	renderOptions(NULL),
 	options(NULL),
@@ -106,10 +106,8 @@ GameController::GameController():
 	debugInfo.push_back(new DebugLines(0x4, gameView, this));
 	//debugInfo.push_back(new ParticleDebug(0x8, gameModel->GetSimulation(), gameModel));
 	
-	thread_pool[0] = std::thread(UpdateParticlesByRegion, gameModel, &startbarrier, &endbarrier, std::ref(do_work), region_pool, 0);
-	thread_pool[1] = std::thread(UpdateParticlesByRegion, gameModel, &startbarrier, &endbarrier, std::ref(do_work), region_pool, 1);
-	thread_pool[2] = std::thread(UpdateParticlesByRegion, gameModel, &startbarrier, &endbarrier, std::ref(do_work), region_pool, 2);
-	thread_pool[3] = std::thread(UpdateParticlesByRegion, gameModel, &startbarrier, &endbarrier, std::ref(do_work), region_pool, 3);
+	for(int thr = 0; thr < THRDS; thr++)
+		thread_pool[thr] = std::thread(UpdateParticlesByRegion, gameModel, &startbarrier, &endbarrier, std::ref(do_work), region_pool, thr);
 }
 
 GameController::~GameController()
@@ -117,8 +115,8 @@ GameController::~GameController()
 	//Stop threads
 	do_work = false;
 	startbarrier.Wait();
-	thread_pool[0].join(); thread_pool[1].join();
-	thread_pool[2].join(); thread_pool[3].join();
+	for(int thr = 0; thr < THRDS; thr++)
+		thread_pool[thr].join();
 
 	if(renderOptions)
 	{
@@ -647,6 +645,7 @@ void GameController::Update()
 	static chrono::milliseconds before_time {};
 	static chrono::milliseconds update_time {};
 	static chrono::milliseconds after_time {};
+	static chrono::milliseconds mark_time {};
 	static chrono::nanoseconds logic_time1 {};
 	static chrono::nanoseconds logic_time2 {};
 	static chrono::nanoseconds logic_time {};
@@ -669,19 +668,16 @@ void GameController::Update()
 		start = chrono::high_resolution_clock::now();
 		//Mark regions for each part
 		sim->MarkPartsRegions(0, NPART);
+		mark_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
 
-		region_pool[0] = 0;
-		region_pool[1] = 2;
-		region_pool[2] = 4;
-		region_pool[3] = 6;
+		for(int thr = 0; thr < THRDS; thr++)
+			region_pool[thr] = thr*2;
 
 		startbarrier.Wait();
 		endbarrier.Wait();
 
-		region_pool[0] = 1;
-		region_pool[1] = 3;
-		region_pool[2] = 5;
-		region_pool[3] = 7;
+		for(int thr = 0; thr < THRDS; thr++)
+			region_pool[thr] = 1 + thr*2;
 
 		startbarrier.Wait();
 		endbarrier.Wait();
@@ -700,17 +696,20 @@ void GameController::Update()
 		auto before = chrono::duration <double, milli>(before_time).count()/300.0;
 		auto update = chrono::duration <double, milli>(update_time).count()/300.0;
 		auto after = chrono::duration <double, milli>(after_time).count()/300.0;
+		auto mark = chrono::duration <double, milli>(mark_time).count()/300.0;
 		auto logic = chrono::duration <double, milli>(logic_time).count()/300.0;
 
 		if (update)
 		{
-			cout << "BeforeSim: " << before << " ms, UpdateParticles: " << update << " ms, AfterSim: " << after << " ms" << endl;
+			cout << "BeforeSim: " << before << " ms, MarkRegions: " << mark << 
+				" ms, UpdateParticles: " << update << " ms, AfterSim: " << after << " ms" << endl;
 			cout << "movement/update: " << (update - logic)/update << endl;
 		}
 		frames = 0;
 		before_time = chrono::milliseconds(0);
 		update_time = chrono::milliseconds(0);
 		after_time = chrono::milliseconds(0);
+		mark_time = chrono::milliseconds(0);
 		logic_time = chrono::milliseconds(0);
 	}
 

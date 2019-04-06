@@ -159,4 +159,7 @@
 
 #define SDEUT
 
+//Number of threads for simulation
+#define THRDS 4
+
 #endif /* CONFIG_H */
