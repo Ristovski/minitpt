@@ -3229,7 +3229,7 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 	int surround[8];
 	int surround_hconduct[8];
 	float pGravX, pGravY, pGravD;
-	bool transitionOccurred;
+	bool transitionOccurred, neighbourBlocked;
 
 	//the main particle loop function, goes over all particles.
 	for(auto itv = parts_by_region[region].begin(); itv != parts_by_region[region].end(); ++itv)
@@ -3352,6 +3352,7 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 			}
 
 			transitionOccurred = false;
+			neighbourBlocked = true;
 
 			j = surround_space = nt = 0;//if nt is greater than 1 after this, then there is a particle around the current particle, that is NOT the current particle's type, for water movement.
 			for (nx=-1; nx<2; nx++)
@@ -3360,11 +3361,19 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 						surround[j] = r = pmap[y+ny][x+nx];
 						j++;
 						if (!TYP(r))
+						{
 							surround_space++;//there is empty space
+							neighbourBlocked = false;
+						}
 						if (TYP(r)!=t)
 							nt++;//there is nothing or a different particle
+						if (eval_move(t, x+nx, y+ny, NULL))
+							neighbourBlocked = false;
 					}
 				}
+
+			if(neighbourBlocked)
+				parts[i].vx = parts[i].vy = 0;
 
 			if (y-2 >= 0 && y-2 < YRES && (elements[t].Properties&TYPE_LIQUID) && (t!=PT_GEL)) {//some heat convection for liquids
 				r = pmap[y-2][x];
@@ -3624,10 +3633,6 @@ void Simulation::UpdateParticles(int start, int end, std::chrono::nanoseconds& t
 			if (t==PT_LIFE)
 			{
 				parts[i].temp = restrict_flt(parts[i].temp-50.0f, MIN_TEMP, MAX_TEMP);
-			}
-			if (t==PT_WIRE)
-			{
-				//wire_placed = 1;
 			}
 			//spark updates from walls
 			if ((elements[t].Properties&PROP_CONDUCTS) || t==PT_SPRK)
